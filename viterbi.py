@@ -1,6 +1,3 @@
-import numpy as np
-
-
 def viterbi(state_space, transition_matrix, observation_matrix, observation_sequence):
     t1 = []
     t2 = []

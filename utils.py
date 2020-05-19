@@ -80,19 +80,19 @@ def get_all_states(chars, shift_allowed):
             for k in range(j, len(chars)):
                 if j == k and chars[j] != "":
                     continue
-                for l in range(k, len(chars)):
-                    if k == l and chars[k] != "":
+                for m in range(k, len(chars)):
+                    if k == m and chars[k] != "":
                         continue
-                    for m in range(l, len(chars)):
-                        if l == m and chars[l] != "":
+                    for n in range(m, len(chars)):
+                        if m == n and chars[m] != "":
                             continue
-                        for n in range(m, len(chars)):
-                            if m == n and chars[m] != "":
+                        for o in range(n, len(chars)):
+                            if n == o and chars[n] != "":
                                 continue
-                            new_state = ("", [chars[n], chars[m], chars[l], chars[k], chars[j], chars[i]])
+                            new_state = ("", [chars[o], chars[n], chars[m], chars[k], chars[j], chars[i]])
                             all_states.append(new_state)
                             if shift_allowed:
-                                new_state = (config.shift, [chars[n], chars[m], chars[l], chars[k], chars[j], chars[i]])
+                                new_state = (config.shift, [chars[o], chars[n], chars[m], chars[k], chars[j], chars[i]])
                                 all_states.append(new_state)
 
     return all_states
