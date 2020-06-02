@@ -65,8 +65,12 @@ def to_string_tuple(state_tuple):
     return tuple(map(lambda entry: str(entry), state_tuple))
 
 
+def to_string_hidden_state(hidden_state):
+    return to_string_tuple(hidden_state[0]), to_string_tuple(hidden_state[1])
+
+
 def is_task_completed(user_id, task_id, file_handler):
-    file_handler.make_read_path_and_file(config.completed_tasks_file_name, user_id)
+    file_handler.make_training_read_path_and_file(config.completed_tasks_file_name, user_id)
     completed_tasks = file_handler.read_csv_to_list()
     return [str(task_id), config.task_completed] in completed_tasks
 

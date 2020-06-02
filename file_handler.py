@@ -31,7 +31,7 @@ class FileHandler:
 
         open(self.path + "/" + self.file_name, 'a+')
 
-    def make_read_path_and_file(self, file_name, user_id="", task_id="", string_to_enter=""):
+    def make_training_read_path_and_file(self, file_name, user_id="", task_id="", string_to_enter=""):
         if user_id == "" and task_id == "" and string_to_enter == "":
             path = "raw_data/"
         elif task_id == "" and string_to_enter == "":
@@ -44,7 +44,7 @@ class FileHandler:
         self.set_path_and_file_name(path, file_name)
         self.ensure_created()
 
-    def make_write_path_and_file(self, file_name, user_id=""):
+    def make_training_write_path_and_file(self, file_name, user_id=""):
         if user_id == "":
             path = "training_data/"
         else:
