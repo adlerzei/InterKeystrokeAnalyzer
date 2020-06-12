@@ -148,19 +148,19 @@ def run():
         all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
         print("count all states reduced: " + str(len(all_states_reduced)))
 
-        # results = viterbi.n_viterbi(all_possible_states,
-        #                             initialization_vector,
-        #                             transition_array,
-        #                             observation_array,
-        #                             observation_sequence,
-        #                             n)
+        results = viterbi.n_viterbi(all_possible_states,
+                                    initialization_vector,
+                                    transition_array,
+                                    observation_array,
+                                    observation_sequence,
+                                    n)
 
-        results = viterbi.n_viterbi_parallel(all_possible_states,
-                                             initialization_vector,
-                                             transition_array,
-                                             observation_array,
-                                             observation_sequence,
-                                             n)
+        # results = viterbi.n_viterbi_parallel(all_possible_states,
+        #                                      initialization_vector,
+        #                                      transition_array,
+        #                                      observation_array,
+        #                                      observation_sequence,
+        #                                      n)
 
         print(results)
 

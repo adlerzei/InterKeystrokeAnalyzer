@@ -137,17 +137,14 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
                 observation_matrix_i_j = observation_matrix[str_state_i][int_observation_j]
                 transition_matrix_k_i = transition_matrix[str_state_k][str_state_i]
 
-                for m in range(len(t1[k][j-1])):
-
-                    # calculate_next_state_probabilities(t1_prev, k, m, observation_matrix_i_j, transition_matrix_k_i):
-                    result = calculate_next_state_probabilities(t1[k][j-1][m],
-                                                                k,
-                                                                m,
-                                                                observation_matrix_i_j,
-                                                                transition_matrix_k_i)
-
-                    if result is not None:
-                        max_transition_list.append(result)
+                max_transition_list.extend(starmap(calculate_next_state_probabilities,
+                                                   [(
+                                                       t1_prev,
+                                                       k,
+                                                       m,
+                                                       observation_matrix_i_j,
+                                                       transition_matrix_k_i,
+                                                   ) for m, t1_prev in enumerate(t1[k][j-1])]))
 
             t1[i][j] = max_transition_list.get_probabilities()
             t2[i][j] = max_transition_list.get_pointer()
@@ -220,7 +217,7 @@ def n_viterbi_parallel(state_space, initialization_vector, transition_matrix, ob
                     or int_observation_j not in observation_matrix[str_state_i]:
                 continue
 
-            max_transition_list = []
+            max_transition_list = MaxTransitionList(n)
             for k in range(len_state_space):
                 str_state_k = utils.to_string_hidden_state(state_space[k])
 
@@ -251,21 +248,8 @@ def n_viterbi_parallel(state_space, initialization_vector, transition_matrix, ob
                                                              transition_matrix_k_i,
                                                            ) for m, t1_prev in enumerate(t1[k][j-1])]))
 
-                # # t1_prev, k, m, str_state_k, str_state_i, transition_matrix, observation_matrix
-                # max_transition_list.extend(starmap(calculate_next_state_probabilities,
-                #                                    [(
-                #                                        t1_prev,
-                #                                        k,
-                #                                        m,
-                #                                        observation_matrix_i_j,
-                #                                        transition_matrix_k_i,
-                #                                    ) for m, t1_prev in enumerate(t1[k][j-1])]))
-
-            max_transition_list.sort(key=lambda elem: elem[0], reverse=True)
-            max_transition_list = max_transition_list[:n]
-
-            t1[i][j] = [item[0] for item in max_transition_list]
-            t2[i][j] = [item[1] for item in max_transition_list]
+            t1[i][j] = max_transition_list.get_probabilities()
+            t2[i][j] = max_transition_list.get_pointer()
 
     max_transition_list = MaxTransitionList(n)
     for i in range(len_state_space):
