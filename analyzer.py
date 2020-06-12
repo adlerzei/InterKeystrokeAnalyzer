@@ -148,12 +148,19 @@ def run():
         all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
         print("count all states reduced: " + str(len(all_states_reduced)))
 
-        results = viterbi.n_viterbi(all_possible_states,
-                                    initialization_vector,
-                                    transition_array,
-                                    observation_array,
-                                    observation_sequence,
-                                    n)
+        # results = viterbi.n_viterbi(all_possible_states,
+        #                             initialization_vector,
+        #                             transition_array,
+        #                             observation_array,
+        #                             observation_sequence,
+        #                             n)
+
+        results = viterbi.n_viterbi_parallel(all_possible_states,
+                                             initialization_vector,
+                                             transition_array,
+                                             observation_array,
+                                             observation_sequence,
+                                             n)
 
         print(results)
 
@@ -234,6 +241,6 @@ def check_passwords_for_double(password_list=None, handler=None, n=0):
 
 
 # run_debug()
-# run()
+run()
 
 # check_passwords_for_double(n=500)
