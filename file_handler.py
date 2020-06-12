@@ -29,7 +29,7 @@ class FileHandler:
         if not os.path.exists(self.path):
             os.makedirs(self.path)
 
-        open(self.path + "/" + self.file_name, 'a+')
+        open(self.path + self.file_name, 'a+')
 
     def make_training_read_path_and_file(self, file_name, user_id="", task_id="", string_to_enter=""):
         if user_id == "" and task_id == "" and string_to_enter == "":
@@ -53,8 +53,20 @@ class FileHandler:
         self.set_path_and_file_name(path, file_name)
         self.ensure_created()
 
+    def make_test_read_path_and_file(self, file_name, user_id="", task_id="", string_to_enter=""):
+        self.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+    def make_test_write_path_and_file(self, file_name, user_id=""):
+        if user_id == "":
+            path = "out/"
+        else:
+            path = "out/" + str(user_id) + "/"
+
+        self.set_path_and_file_name(path, file_name)
+        self.ensure_created()
+
     def write_csv_row(self, row):
-        with open(self.path + "/" + self.file_name, 'a+') as f:
+        with open(self.path + self.file_name, 'a+') as f:
             csv_writer = csv.writer(f, delimiter=';')
             csv_writer.writerow(row)
 
@@ -92,3 +104,6 @@ class FileHandler:
                 eval_dict[eval(outer_key)][eval(inner_key)] = eval(json_dict[outer_key][inner_key])
 
         return eval_dict
+
+    def clear_file(self):
+        open(self.path + self.file_name, mode="w")

@@ -1,14 +1,52 @@
+import utils
+
 class KeyPairAnalyzer:
 
     def __init__(self):
         self.packet_list = []
         self.transition_probabilities = {}
         self.observation_probabilities = {}
+        self.initialization_vector = {}
 
     def read_packet_list(self, handler):
         self.packet_list = handler.read_csv_to_list()
 
         del self.packet_list[0]
+
+    def calculate_initialization_vector(self):
+        i = 1
+        first_iteration = True
+        last_keyboard_state = ()
+        for packet in self.packet_list:
+            new_keyboard_state = (packet[5], packet[6])
+            new_keyboard_state_eval = utils.try_eval_tuple(new_keyboard_state)
+            new_keyboard_state_eval[1].sort()
+            new_keyboard_state = utils.to_string_tuple(new_keyboard_state_eval)
+            new_hidden_state = (last_keyboard_state, new_keyboard_state)
+
+            # structure: i;delta;sniff-intervals;modifier-scan-code;keys-scan-code;modifier;keys
+            if i == int(packet[0]):
+                # transition probabilities
+                if not first_iteration:
+                    if new_hidden_state not in self.initialization_vector:
+                        self.initialization_vector[new_hidden_state] = 0
+                    self.initialization_vector[new_hidden_state] += 1
+                    i += 1
+                else:
+                    first_iteration = False
+            else:
+                first_iteration = True
+
+            last_keyboard_state = new_keyboard_state
+
+    def normalize_initialization_vector(self):
+        total = 0
+
+        for state in self.initialization_vector:
+            total += self.initialization_vector[state]
+
+        for state in self.initialization_vector:
+            self.initialization_vector[state] /= total
 
     def calculate_probabilities(self):
         i = 0
@@ -17,11 +55,14 @@ class KeyPairAnalyzer:
         last_hidden_state = ()
         for packet in self.packet_list:
             new_keyboard_state = (packet[5], packet[6])
+            new_keyboard_state_eval = utils.try_eval_tuple(new_keyboard_state)
+            new_keyboard_state_eval[1].sort()
+            new_keyboard_state = utils.to_string_tuple(new_keyboard_state_eval)
             sniff_intervals = int(packet[2])
             new_hidden_state = (last_keyboard_state, new_keyboard_state)
 
             # structure: i;delta;sniff-intervals;modifier-scan-code;keys-scan-code;modifier;keys
-            if i == packet[0]:
+            if i == int(packet[0]):
                 # transition probabilities
                 if not first_iteration:
                     if last_hidden_state not in self.transition_probabilities:
@@ -47,7 +88,7 @@ class KeyPairAnalyzer:
 
             last_keyboard_state = new_keyboard_state
             last_hidden_state = new_hidden_state
-            i = packet[0]
+            i = int(packet[0])
 
     def normalize_probabilities(self):
         for initial_state in self.transition_probabilities:

@@ -1,4 +1,5 @@
 import config
+from itertools import combinations
 
 
 def try_eval_tuple(to_eval):
@@ -75,6 +76,16 @@ def is_task_completed(user_id, task_id, file_handler):
     return [str(task_id), config.task_completed] in completed_tasks
 
 
+def get_all_states_with_length(chars, shift_allowed, length=6):
+    all_states = []
+    for i in range(1, length+1):
+        all_states.extend(list(map(lambda permu: ("", ([""] * (6 - i)) + list(permu)), combinations(chars, i))))
+        if shift_allowed:
+            all_states.extend(list(map(lambda permu: (config.shift, ([""] * (6 - i)) + list(permu)), combinations(chars, i))))
+
+    return all_states
+
+
 def get_all_states(chars, shift_allowed):
     all_states = []
     for i in range(len(chars)):
@@ -124,6 +135,10 @@ def extend_list_with_empty(chars):
     to_return = [""]
     to_return.extend(chars)
     return to_return
+
+
+def extend_list_with_empty_state(state_list):
+    return [("", ["", "", "", "", "", ""])] + state_list
 
 
 def is_empty(state):
@@ -231,6 +246,10 @@ def fill_observation_array(all_states, recorded_observations):
                 continue
 
             possible_next_state = execute_change_list(possible_old_state, changed)
+
+            if possible_next_state not in all_states:
+                continue
+
             str_possible_old_state = to_string_tuple(possible_old_state)
             str_possible_next_state = to_string_tuple(possible_next_state)
 
@@ -267,6 +286,10 @@ def fill_transition_array(all_states, recoded_transitions):
                 continue
 
             possible_next_state = execute_change_list(possible_old_state, changed_first_state)
+
+            if possible_next_state not in all_states:
+                continue
+
             str_possible_old_state = to_string_tuple(possible_old_state)
             str_possible_next_state = to_string_tuple(possible_next_state)
 
@@ -306,7 +329,7 @@ def get_all_possible_states(observation_array):
     for (first_state, next_state) in observation_array:
         first_state_eval = try_eval_tuple(first_state)
         next_state_eval = try_eval_tuple(next_state)
-        if (first_state, next_state) not in possible_states:
+        if (first_state_eval, next_state_eval) not in possible_states:
             possible_states.append((first_state_eval, next_state_eval))
     return possible_states
 
@@ -345,7 +368,7 @@ def reduce_to_possible_keyboard_states(all_states):
     for i in range(6):
         for (first_state, next_state) in all_states:
             if first_state not in possible_states \
-                    and get_length_of_state(first_state[1]) == 1:
+                    and get_length_of_state(first_state) == 1:
                 possible_states.append(first_state)
 
             if first_state in possible_states:
