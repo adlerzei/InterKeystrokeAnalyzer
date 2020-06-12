@@ -71,7 +71,7 @@ def run_debug():
         print(result)
 
 
-def run(n):
+def run(n, parallel=False):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     password_analyzer = PasswordAnalyzer()
@@ -148,19 +148,20 @@ def run(n):
         all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
         print("count all states reduced: " + str(len(all_states_reduced)))
 
-        results = viterbi.n_viterbi(all_possible_states,
-                                    initialization_vector,
-                                    transition_array,
-                                    observation_array,
-                                    observation_sequence,
-                                    n)
-
-        # results = viterbi.n_viterbi_parallel(all_possible_states,
-        #                                      initialization_vector,
-        #                                      transition_array,
-        #                                      observation_array,
-        #                                      observation_sequence,
-        #                                      n)
+        if not parallel:
+            results = viterbi.n_viterbi(all_possible_states,
+                                        initialization_vector,
+                                        transition_array,
+                                        observation_array,
+                                        observation_sequence,
+                                        n)
+        else:
+            results = viterbi.n_viterbi_parallel(all_possible_states,
+                                                 initialization_vector,
+                                                 transition_array,
+                                                 observation_array,
+                                                 observation_sequence,
+                                                 n)
 
         print(results)
 
@@ -243,7 +244,7 @@ def check_passwords_for_double(password_list=None, handler=None, n=0):
 st = time.time()
 
 # run_debug()
-run(n=2000)
+run(n=2000, parallel=True)
 
 # check_passwords_for_double(n=500)
 
@@ -251,4 +252,4 @@ runtime_sec = time.time() - st
 runtime_min = int(runtime_sec / 60)
 runtime_min_sec = int(runtime_sec % 60)
 print("---- %.2f sec ----" % runtime_sec)
-print("---- %d:%d min ----" % (runtime_min, runtime_min_sec))
+print("---- %02d:%02d min ----" % (runtime_min, runtime_min_sec))
