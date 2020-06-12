@@ -286,4 +286,3 @@ def n_viterbi_parallel(state_space, initialization_vector, transition_matrix, ob
         outputs.append(output)
 
     return outputs
-

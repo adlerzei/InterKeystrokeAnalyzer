@@ -6,6 +6,7 @@ import key_interval_analyzer as interval_plt
 import config
 import utils
 import viterbi
+import time
 
 
 def run_debug():
@@ -70,7 +71,7 @@ def run_debug():
         print(result)
 
 
-def run():
+def run(n):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     password_analyzer = PasswordAnalyzer()
@@ -119,7 +120,6 @@ def run():
 
     #   analyzer.print_probabilities()
 
-        n = 5
         observation_sequence = password_analyzer.observation_sequence
         initialization_vector = analyzer.initialization_vector
         transition_array = utils.fill_transition_array(all_states, analyzer.transition_probabilities)
@@ -240,7 +240,15 @@ def check_passwords_for_double(password_list=None, handler=None, n=0):
     return used_passwords, double_passwords
 
 
+st = time.time()
+
 # run_debug()
-run()
+run(n=2000)
 
 # check_passwords_for_double(n=500)
+
+runtime_sec = time.time() - st
+runtime_min = int(runtime_sec / 60)
+runtime_min_sec = int(runtime_sec % 60)
+print("---- %.2f sec ----" % runtime_sec)
+print("---- %d:%d min ----" % (runtime_min, runtime_min_sec))
