@@ -1,4 +1,5 @@
 import utils
+import numpy as np
 from multiprocessing import Pool
 from max_transition_list import MaxTransitionList
 from itertools import starmap
@@ -13,7 +14,7 @@ def calculate_next_state_probabilities(t1_prev, k, m, observation_matrix_i_j, tr
     return trans, (k, m)
 
 
-def viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence):
+def viterbi_with_list(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence):
     len_state_space = len(state_space)
     len_observation_sequence = len(observation_sequence)
 
@@ -24,17 +25,17 @@ def viterbi(state_space, initialization_vector, transition_matrix, observation_m
         str_state_i = utils.to_string_hidden_state(state_space[i])
         int_observation_0 = int(observation_sequence[0])
 
-        t1[i] = [[]] * len_observation_sequence
-        t2[i] = [[]] * len_observation_sequence
+        t1[i] = [None] * len_observation_sequence
+        t2[i] = [None] * len_observation_sequence
 
         if str_state_i not in observation_matrix \
                 or int_observation_0 not in observation_matrix[str_state_i]:
             continue
         if str_state_i not in initialization_vector:
-            t1[i][0] = [0]
+            t1[i][0] = 0
         else:
-            t1[i][0] = [initialization_vector[str_state_i] * observation_matrix[str_state_i][int_observation_0]]
-        t2[i][0] = [0]
+            t1[i][0] = initialization_vector[str_state_i] * observation_matrix[str_state_i][int_observation_0]
+        t2[i][0] = 0
 
     for j in range(1, len_observation_sequence):
         for i in range(len_state_space):
@@ -92,10 +93,42 @@ def viterbi(state_space, initialization_vector, transition_matrix, observation_m
         max_index = t2[max_index][j]
         print("max index: " + str(max_index))
 
-    return output
+    return highest_path, output
 
 
-def n_viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, n):
+def viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence):
+    len_state_space = len(state_space)
+    len_observation_sequence = len(observation_sequence)
+
+    t1 = np.empty((len_state_space, len_observation_sequence), np.float)
+    t2 = np.empty((len_state_space, len_observation_sequence), np.uint16)
+
+    # Initialize the tracking tables from first observation
+    t1[:, 0] = initialization_vector * observation_matrix[:, observation_sequence[0]]
+    t2[:, 0] = 0
+
+    # Iterate through observations updating the tracking tables
+    for j in range(1, len_observation_sequence):
+        t1[:, j] = np.amax(t1[:, j - 1] * transition_matrix.T * observation_matrix[np.newaxis, :, observation_sequence[j]].T, 1)
+        t2[:, j] = np.argmax(t1[:, j - 1] * transition_matrix.T, 1)
+
+    # Build the output, optimal model trajectory
+    x = np.empty(len_observation_sequence, np.uint16)
+    output = np.empty(len_observation_sequence, np.object)
+
+    x[-1] = np.argmax(t1[:, len_observation_sequence - 1])
+    output[-1] = state_space[x[-1]]
+    for i in reversed(range(1, len_observation_sequence)):
+        x[i - 1] = t2[x[i], i]
+        output[i - 1] = state_space[x[i - 1]]
+
+    return x, output
+
+
+def n_viterbi_with_list(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, n):
+    if n == 1:
+        return viterbi_with_list(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence)
+
     len_state_space = len(state_space)
     len_observation_sequence = len(observation_sequence)
 
@@ -155,6 +188,7 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
             max_transition_list.append((t1[i][len_observation_sequence - 1][m], (i, m)))
 
     outputs = []
+    highest_paths = []
 
     for max_transition in max_transition_list:
         max_state_index = max_transition[1][0]
@@ -182,8 +216,16 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
             print("max_state_transition_index: " + str(max_state_transition_index))
 
         outputs.append(output)
+        highest_paths.append(highest_path)
 
-    return outputs
+    return highest_paths, outputs
+
+
+def n_viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, n):
+    if n == 1:
+        return viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence)
+    else:
+        raise Exception('not implemented yet')
 
 
 def n_viterbi_parallel(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, n):

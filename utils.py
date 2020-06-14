@@ -1,4 +1,5 @@
 import config
+import numpy as np
 from itertools import combinations
 
 
@@ -393,3 +394,51 @@ def sort_states(all_states):
     for state in all_states:
         state[1].sort()
     return all_states
+
+
+def make_numpy_array_from_initialisation_vector(all_states, initialisation_vector):
+    IV = np.full(len(all_states), 0, np.float)
+    for i in range(len(all_states)):
+        str_state_i = to_string_hidden_state(all_states[i])
+        if str_state_i in initialisation_vector:
+            IV[i] = initialisation_vector[str_state_i]
+
+    return IV
+
+
+def make_numpy_arrays_from_observation_matrix(all_states, observation_matrix):
+    # todo check if every sniff interval is within that range
+    B = np.full((len(all_states), 200), 0, np.float)
+    for i in range(len(all_states)):
+        str_state_i = to_string_hidden_state(all_states[i])
+        if str_state_i not in observation_matrix:
+            continue
+
+        for j in range(200):
+            if j in observation_matrix[str_state_i]:
+                B[i, j] = observation_matrix[str_state_i][j]
+
+    return B
+
+
+def make_numpy_array_from_transition_matrix(all_states, transition_matrix):
+    A = np.full((len(all_states), len(all_states)), 0, np.float)
+    for i in range(len(all_states)):
+        str_state_i = to_string_hidden_state(all_states[i])
+        if str_state_i not in transition_matrix:
+            continue
+
+        for j in range(len(all_states)):
+            str_state_j = to_string_hidden_state(all_states[j])
+            if str_state_j in transition_matrix[str_state_i]:
+                A[i, j] = transition_matrix[str_state_i][str_state_j]
+
+    return A
+
+
+def make_numpy_array_from_observation_sequence(observation_sequence):
+    y = np.empty(len(observation_sequence), np.uint16)
+    for i in range(len(observation_sequence)):
+        y[i] = int(observation_sequence[i])
+    return y
+
