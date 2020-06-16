@@ -437,8 +437,10 @@ def make_numpy_array_from_transition_matrix(all_states, transition_matrix):
 
 
 def make_numpy_array_from_observation_sequence(observation_sequence):
-    y = np.empty(len(observation_sequence), np.uint16)
-    for i in range(len(observation_sequence)):
-        y[i] = int(observation_sequence[i])
-    return y
+    return np.array(observation_sequence, np.uint16)
 
+
+def make_numpy_array_from_state_space(state_space):
+    out = np.empty(len(state_space), dtype=object)
+    out[:] = state_space
+    return out

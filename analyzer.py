@@ -58,6 +58,7 @@ def run_debug(n=1, parallel=False, with_list=False):
     all_possible_states = utils.get_all_possible_states(observation_array)
     print("all poss states: " + str(len(all_possible_states)))
 
+    state_space = utils.make_numpy_array_from_state_space(all_possible_states)
     IV = utils.make_numpy_array_from_initialisation_vector(all_possible_states, initialization_vector)
     A = utils.make_numpy_array_from_transition_matrix(all_possible_states, transition_array)
     B = utils.make_numpy_arrays_from_observation_matrix(all_possible_states, observation_array)
@@ -79,7 +80,7 @@ def run_debug(n=1, parallel=False, with_list=False):
             )
         else:
             results = viterbi.n_viterbi(
-                all_possible_states,
+                state_space,
                 IV,
                 A,
                 B,
@@ -87,19 +88,21 @@ def run_debug(n=1, parallel=False, with_list=False):
                 n
             )
     else:
-        results = viterbi.n_viterbi_parallel(all_possible_states,
-                                             initialization_vector,
-                                             transition_array,
-                                             observation_array,
-                                             observation_sequence,
-                                             n)
+        results = viterbi.n_viterbi_parallel(
+            all_possible_states,
+            initialization_vector,
+            transition_array,
+            observation_array,
+            observation_sequence,
+            n
+        )
 
     for result in results:
         print(result)
 
 
 def run_debug_2(n=1, with_list=False):
-    state_space = [
+    all_states = [
         ('', ('', '', '', '', '', 'a')),
         ('', ('', '', '', '', '', 'b')),
         ('', ('', '', '', '', '', 'c')),
@@ -185,13 +188,15 @@ def run_debug_2(n=1, with_list=False):
         2
     ]
 
+    # state_space = np.array([('', ('', '', '', '', '', 'a')), ('', ('', '', '', '', '', 'b')), ('', ('', '', '', '', '', 'c')), ('', ('', '', '', '', '', 'd')), ('', ('', '', '', '', '', 'e'))])
     # A = np.array([[0.5, 0.6, 0.7, 0, 0.1], [0.2, 0.1, 0, 0.8, 0], [0, 0, 0.1, 0.7, 0], [0.6, 0.2, 0, 0, 0.9], [0, 0.4, 0.5, 0.1, 0]])
     # B = np.array([[0.3, 0.4, 0.7, 0], [0.1, 0.8, 0.1, 0.6], [0, 0.1, 0.2, 0.4], [0.6, 0, 0.3, 0.1], [0.4, 0.2, 0, 0.2]])
     # IV = np.array([0, 0.7, 0.2, 0.3, 0.1])
     # y = np.array([1, 3, 0, 2])
-    A = utils.make_numpy_array_from_transition_matrix(state_space, transition_matrix)
-    B = utils.make_numpy_arrays_from_observation_matrix(state_space, observation_matrix)
-    IV = utils.make_numpy_array_from_initialisation_vector(state_space, initialisation_vector)
+    state_space = utils.make_numpy_array_from_state_space(all_states)
+    A = utils.make_numpy_array_from_transition_matrix(all_states, transition_matrix)
+    B = utils.make_numpy_arrays_from_observation_matrix(all_states, observation_matrix)
+    IV = utils.make_numpy_array_from_initialisation_vector(all_states, initialisation_vector)
     y = utils.make_numpy_array_from_observation_sequence(observation_sequence)
 
     if not with_list:
@@ -205,7 +210,7 @@ def run_debug_2(n=1, with_list=False):
         )
     else:
         result = viterbi.n_viterbi_with_list(
-            state_space,
+            all_states,
             initialisation_vector,
             transition_matrix,
             observation_matrix,
@@ -294,6 +299,7 @@ def run(n=1, parallel=False, with_list=False):
         # all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
         # print("count all states reduced: " + str(len(all_states_reduced)))
 
+        state_space = utils.make_numpy_array_from_state_space(all_possible_states)
         IV = utils.make_numpy_array_from_initialisation_vector(all_possible_states, initialization_vector)
         A = utils.make_numpy_array_from_transition_matrix(all_possible_states, transition_array)
         B = utils.make_numpy_arrays_from_observation_matrix(all_possible_states, observation_array)
@@ -311,7 +317,7 @@ def run(n=1, parallel=False, with_list=False):
                 )
             else:
                 results = viterbi.n_viterbi(
-                    all_possible_states,
+                    state_space,
                     IV,
                     A,
                     B,
@@ -410,8 +416,8 @@ def check_passwords_for_double(password_list=None, handler=None, n=0):
 st = time.time()
 
 # run_debug()
-# run_debug_2(n=1, with_list=False)
-run(n=1, parallel=False, with_list=True)
+run_debug_2(n=2, with_list=False)
+# run(n=500, parallel=False, with_list=False)
 
 # check_passwords_for_double(n=500)
 

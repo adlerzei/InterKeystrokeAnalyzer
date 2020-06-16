@@ -97,8 +97,8 @@ def viterbi_with_list(state_space, initialization_vector, transition_matrix, obs
 
 
 def viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence):
-    len_state_space = len(state_space)
-    len_observation_sequence = len(observation_sequence)
+    len_state_space = state_space.shape[0]
+    len_observation_sequence = observation_sequence.shape[0]
 
     t1 = np.empty((len_state_space, len_observation_sequence), np.float)
     t2 = np.empty((len_state_space, len_observation_sequence), np.uint16)
@@ -221,11 +221,52 @@ def n_viterbi_with_list(state_space, initialization_vector, transition_matrix, o
     return highest_paths, outputs
 
 
-def n_viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, n):
-    if n == 1:
+def n_viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, N):
+    if N == 1:
         return viterbi(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence)
-    else:
-        raise Exception('not implemented yet')
+
+    len_state_space = state_space.shape[0]
+    len_observation_sequence = observation_sequence.shape[0]
+
+    t1 = np.empty((len_state_space, len_observation_sequence, N), np.float)
+    t2 = np.empty((len_state_space, len_observation_sequence, N, 2), np.object)
+
+    # Initialize the tracking tables from first observation
+    t1[:, 0, 0] = initialization_vector * observation_matrix[:, observation_sequence[0]]
+    t1[:, 0, 1:N] = 0
+    t2[:, 0, :] = (0, 0)
+
+    # Iterate through observations updating the tracking tables
+    for j in range(1, len_observation_sequence):
+        all_probabilities = t1[:, j - 1, 0] * transition_matrix.T
+        for n in range(1, N):
+            step_n = t1[:, j - 1, n] * transition_matrix.T
+            all_probabilities = np.append(
+                all_probabilities,
+                step_n,
+                axis=1
+            )
+        max_indices = np.argpartition(all_probabilities, all_probabilities.shape[1] - N)[:, all_probabilities.shape[1] - N:]
+        t1[:, j, :] = np.take_along_axis(all_probabilities, max_indices, axis=-1) \
+                      * observation_matrix[np.newaxis, :, observation_sequence[j]].T
+        t2[:, j, :, 0] = max_indices % len_state_space
+        t2[:, j, :, 1] = max_indices // len_state_space
+
+    # Build the output, optimal model trajectory
+    x = np.empty((N, len_observation_sequence, 2), np.uint16)
+    output = np.empty((N, len_observation_sequence), np.object)
+
+    all_last_elements = t1[:, -1, :].ravel()
+    largest_elements = -np.sort(-np.argpartition(all_last_elements, all_last_elements.shape[0] - N)[all_last_elements.shape[0] - N:])
+
+    x[:, -1, 0] = largest_elements // N
+    x[:, -1, 1] = largest_elements % N
+    output[:, -1] = np.take_along_axis(state_space, x[:, -1, 0], axis=-1)
+    for i in reversed(range(1, len_observation_sequence)):
+        x[:, i - 1, :] = t2[x[:, i, 0], i, x[:, i, 1]]
+        output[:, i - 1] = np.take_along_axis(state_space, x[:, i - 1, 0], axis=-1)
+
+    return x, output
 
 
 def n_viterbi_parallel(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, n):
