@@ -230,7 +230,7 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
 
     t1 = np.empty((len_state_space, len_observation_sequence, N), np.float)
     t2 = np.empty((len_state_space, len_observation_sequence, N, 2), np.uint16)
-		t3 = np.empty((len_state_space, N), np.uint16)
+    t3 = np.empty((len_state_space, N), np.uint16)
 
     # Initialize the tracking tables from first observation
     t1[:, 0, 0] = initialization_vector * observation_matrix[:, observation_sequence[0]]
@@ -240,8 +240,8 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
     # Iterate through observations updating the tracking tables
     for j in range(1, len_observation_sequence):
         t1[:, j, :] = t1[:, j - 1, 0] * transition_matrix.T
-				t2[:, j, :, 0] = np.array(range(len_state_space))
-				t2[:, j, :, 1] = 0
+        t2[:, j, :, 0] = np.array(range(len_state_space))
+        t2[:, j, :, 1] = 0
         for n in range(1, N):
             step_n = t1[:, j - 1, n] * transition_matrix.T
             all_probabilities = np.append(
@@ -249,13 +249,13 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
                 step_n,
                 axis=1
             )
-						
-						max_indices = np.argpartition(all_probabilities, all_probabilities.shape[1] - N)[:, all_probabilities.shape[1] - N:]
-						t1[:, j, :] = np.take_along_axis(all_probabilities, max_indices, axis=-1)
-						t3 = max_indices % len_state_space
-						t2[:, j, :, 0] = np.where(max_indices // len_state_space, t3, t2[:, j, :, 0])
-						t2[:, j, :, 1] = np.where(max_indices // len_state_space, n, t2[:, j, :, 1])
-						
+
+            max_indices = np.argpartition(all_probabilities, all_probabilities.shape[1] - N)[:, all_probabilities.shape[1] - N:]
+            t1[:, j, :] = np.take_along_axis(all_probabilities, max_indices, axis=-1)
+            t3 = max_indices % len_state_space
+            t2[:, j, :, 0] = np.where(max_indices // len_state_space, t3, t2[:, j, :, 0])
+            t2[:, j, :, 1] = np.where(max_indices // len_state_space, n, t2[:, j, :, 1])
+
         t1[:, j, :] = t1[:, j, :] * observation_matrix[np.newaxis, :, observation_sequence[j]].T
 
     # Build the output, optimal model trajectory
