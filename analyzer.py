@@ -233,6 +233,9 @@ def run(n=1, parallel=False, with_list=False):
     user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
 
     for user_id in user_list:
+        if user_id != "4810":
+            continue
+            
         file_name = make_file_name(user_id, "4", "niequai4")
         file_handler.make_test_read_path_and_file(file_name, user_id, "4", "niequai4")
 
@@ -416,8 +419,8 @@ def check_passwords_for_double(password_list=None, handler=None, n=0):
 st = time.time()
 
 # run_debug()
-run_debug_2(n=2, with_list=False)
-# run(n=500, parallel=False, with_list=False)
+# run_debug_2(n=2, with_list=False)
+run(n=20, parallel=False, with_list=False)
 
 # check_passwords_for_double(n=500)
 

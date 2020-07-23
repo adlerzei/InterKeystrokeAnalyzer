@@ -1,4 +1,6 @@
+import math
 import utils
+
 
 class KeyPairAnalyzer:
 
@@ -106,12 +108,25 @@ class KeyPairAnalyzer:
             observ_dict = self.observation_probabilities[hidden_state]
             # first: calculate total amount
             total = 0
+            mean = 0
             for sniff_intervals in observ_dict:
                 total += observ_dict[sniff_intervals]
+                mean += sniff_intervals * observ_dict[sniff_intervals]
+            mean /= total
 
-            # finally: normalize
+            standard_deviation = 0
             for sniff_intervals in observ_dict:
-                observ_dict[sniff_intervals] /= total
+                standard_deviation += ((sniff_intervals - mean) ** 2) * observ_dict[sniff_intervals]
+            standard_deviation = (standard_deviation / total) ** 0.5
+
+            if standard_deviation == 0:
+                standard_deviation = 1
+
+            denominator = (((math.pi * 2) ** 0.5) * standard_deviation)
+            # finally: normalize
+            for sniff_intervals in range(100):
+                numerator = math.exp(-(((sniff_intervals - mean) ** 2) / (2 * (standard_deviation ** 2))))
+                observ_dict[sniff_intervals] = numerator / denominator
 
     def save_transition_probabilities(self, file_handler):
         file_handler.write_json_dump(self.transition_probabilities)

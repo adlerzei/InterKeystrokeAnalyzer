@@ -408,13 +408,13 @@ def make_numpy_array_from_initialisation_vector(all_states, initialisation_vecto
 
 def make_numpy_arrays_from_observation_matrix(all_states, observation_matrix):
     # todo check if every sniff interval is within that range
-    B = np.full((len(all_states), 200), 0, np.float)
+    B = np.full((len(all_states), 50), 0, np.float)
     for i in range(len(all_states)):
         str_state_i = to_string_hidden_state(all_states[i])
         if str_state_i not in observation_matrix:
             continue
 
-        for j in range(200):
+        for j in range(50):
             if j in observation_matrix[str_state_i]:
                 B[i, j] = observation_matrix[str_state_i][j]
 

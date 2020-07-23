@@ -227,10 +227,10 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
 
     len_state_space = state_space.shape[0]
     len_observation_sequence = observation_sequence.shape[0]
+    increasing_states_array = np.repeat(np.arange(len_state_space)[np.newaxis, :], len_state_space, axis=0)
 
     t1 = np.empty((len_state_space, len_observation_sequence, N), np.float)
-    t2 = np.empty((len_state_space, len_observation_sequence, N, 2), np.uint16)
-    t3 = np.empty((len_state_space, N), np.uint16)
+    t2 = np.empty((len_state_space, len_observation_sequence, N, 2), np.object)
 
     # Initialize the tracking tables from first observation
     t1[:, 0, 0] = initialization_vector * observation_matrix[:, observation_sequence[0]]
@@ -239,24 +239,44 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
 
     # Iterate through observations updating the tracking tables
     for j in range(1, len_observation_sequence):
-        t1[:, j, :] = t1[:, j - 1, 0] * transition_matrix.T
-        t2[:, j, :, 0] = np.array(range(len_state_space))
-        t2[:, j, :, 1] = 0
+        all_probabilities = t1[:, j - 1, 0] * transition_matrix.T
+
+        if len_state_space > N:
+            best_state_indices = np.argpartition(all_probabilities, all_probabilities.shape[1] - N)[:, all_probabilities.shape[1] - N:]
+            all_probabilities = np.take_along_axis(all_probabilities, best_state_indices, axis=-1) \
+                                * observation_matrix[np.newaxis, :, observation_sequence[j]].T
+            best_n_indices = np.zeros((len_state_space, N))
+        else:
+            best_state_indices = increasing_states_array
+            best_n_indices = np.zeros((len_state_space, len_state_space))
+
         for n in range(1, N):
-            step_n = t1[:, j - 1, n] * transition_matrix.T
             all_probabilities = np.append(
-                t1[:, j, :],
-                step_n,
+                all_probabilities,
+                t1[:, j - 1, n] * transition_matrix.T,
+                axis=1
+            )
+
+            all_state_indices = np.append(
+                best_state_indices,
+                increasing_states_array,
+                axis=1
+            )
+
+            all_n_indices = np.append(
+                best_n_indices,
+                np.full((len_state_space, len_state_space), n),
                 axis=1
             )
 
             max_indices = np.argpartition(all_probabilities, all_probabilities.shape[1] - N)[:, all_probabilities.shape[1] - N:]
-            t1[:, j, :] = np.take_along_axis(all_probabilities, max_indices, axis=-1)
-            t3 = max_indices % len_state_space
-            t2[:, j, :, 0] = np.where(max_indices // len_state_space, t3, t2[:, j, :, 0])
-            t2[:, j, :, 1] = np.where(max_indices // len_state_space, n, t2[:, j, :, 1])
+            all_probabilities = np.take_along_axis(all_probabilities, max_indices, axis=-1)
+            best_state_indices = np.take_along_axis(all_state_indices, max_indices, axis=-1)
+            best_n_indices = np.take_along_axis(all_n_indices, max_indices, axis=-1)
 
-        t1[:, j, :] = t1[:, j, :] * observation_matrix[np.newaxis, :, observation_sequence[j]].T
+        t1[:, j, :] = all_probabilities * observation_matrix[np.newaxis, :, observation_sequence[j]].T
+        t2[:, j, :, 0] = best_state_indices
+        t2[:, j, :, 1] = best_n_indices
 
     # Build the output, optimal model trajectory
     x = np.empty((N, len_observation_sequence, 2), np.uint16)

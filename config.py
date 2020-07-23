@@ -9,7 +9,7 @@ shift = "(shift)"
 random_seed = 1337
 
 # path/folders and so on
-users_file_name = "users"
+users_file_name = "raw_data/users"
 completed_tasks_file_name = "completed_tasks"
 task_completed = "all"
 transitions_file_name = "transitions"
