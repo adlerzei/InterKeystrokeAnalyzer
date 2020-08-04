@@ -9,6 +9,10 @@ class KeyPairAnalyzer:
         self.transition_probabilities = {}
         self.observation_probabilities = {}
         self.initialization_vector = {}
+        self.first_hidden_states_count = {}
+        self.overlapping_count = 0
+        self.non_overlapping_count = 0
+        self.max_overlapping = 0
 
     def read_packet_list(self, handler):
         self.packet_list = handler.read_csv_to_list()
@@ -19,6 +23,7 @@ class KeyPairAnalyzer:
         i = 1
         first_iteration = True
         last_keyboard_state = ()
+        all_first_hidden_states = []
         for packet in self.packet_list:
             new_keyboard_state = (packet[5], packet[6])
             new_keyboard_state_eval = utils.try_eval_tuple(new_keyboard_state)
@@ -30,6 +35,9 @@ class KeyPairAnalyzer:
             if i == int(packet[0]):
                 # transition probabilities
                 if not first_iteration:
+                    if new_hidden_state not in all_first_hidden_states:
+                        all_first_hidden_states.append(new_hidden_state)
+
                     if new_hidden_state not in self.initialization_vector:
                         self.initialization_vector[new_hidden_state] = 0
                     self.initialization_vector[new_hidden_state] += 1
@@ -41,13 +49,22 @@ class KeyPairAnalyzer:
 
             last_keyboard_state = new_keyboard_state
 
+        for hidden_state in all_first_hidden_states:
+            if hidden_state not in self.first_hidden_states_count:
+                self.first_hidden_states_count[hidden_state] = 0
+            self.first_hidden_states_count[hidden_state] += 1
+
     def normalize_initialization_vector(self):
         total = 0
 
         for state in self.initialization_vector:
+            # first normalize in terms of occurrences in packet_lists
+            self.initialization_vector[state] /= self.first_hidden_states_count[state]
+            # then count the total amount
             total += self.initialization_vector[state]
 
         for state in self.initialization_vector:
+            # then normalize in terms of occurrences in total
             self.initialization_vector[state] /= total
 
     def calculate_probabilities(self):
@@ -158,3 +175,21 @@ class KeyPairAnalyzer:
             print()
         print()
 
+    def count_overlapping_keystrokes(self):
+        for packet in self.packet_list:
+            new_keyboard_state = (packet[5], packet[6])
+            new_keyboard_state_eval = utils.try_eval_tuple(new_keyboard_state)
+            new_keyboard_state_eval[1].sort()
+            count = utils.get_length_of_state(new_keyboard_state_eval)
+
+            # count if overlapping or nor
+            if count == 0:
+                continue
+            elif count == 1:
+                self.non_overlapping_count += 1
+            else:
+                self.overlapping_count += 1
+
+            # count max overlapping
+            if count > self.max_overlapping:
+                self.max_overlapping = count

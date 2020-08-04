@@ -3,7 +3,7 @@ from file_handler import FileHandler, make_file_name
 from password_analyzer import PasswordAnalyzer
 import key_pair_generator as keygen
 import key_interval_analyzer as interval_plt
-import numpy as np
+import keystroke_analyzer as stroke_plt
 import config
 import utils
 import viterbi
@@ -14,11 +14,8 @@ def run_debug(n=1, parallel=False, with_list=False):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     password_analyzer = PasswordAnalyzer()
-    char_pairs = keygen.get_char_pairs()
-    shift_pairs = keygen.get_shift_pairs()
     file_handler.set_path_and_file_name("", config.users_file_name)
     file_handler.ensure_created()
-    user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
 
     file_name = make_file_name("4810", "1", "4a")
     file_handler.make_training_read_path_and_file(file_name, "4810", "1", "4a")
@@ -226,7 +223,7 @@ def run(n=1, parallel=False, with_list=False):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     password_analyzer = PasswordAnalyzer()
-    char_pairs = keygen.get_char_pairs()
+    char_pairs = config.key_pairs
     shift_pairs = keygen.get_shift_pairs()
     file_handler.set_path_and_file_name("", config.users_file_name)
     file_handler.ensure_created()
@@ -287,18 +284,18 @@ def run(n=1, parallel=False, with_list=False):
         print("count all poss states: " + str(len(all_possible_states)))
         print()
 
-    #   all_possible_keyboard_states_from_observations = \
-    #       utils.get_all_possible_keyboard_states_from_observations(observation_array)
-    #   print("all possible keyboard states from observations: " + str(all_possible_keyboard_states_from_observations))
-    #   print("count all poss keyboard states from observations:" + str(len(all_possible_keyboard_states_from_observations)))
-    #   print()
-
-    #   all_possible_keyboard_states_from_transitions = \
-    #       utils.get_all_possible_keyboard_states_from_transitions(transition_array)
-    #   print("all possible keyboard states from transitions: " + str(all_possible_keyboard_states_from_transitions))
-    #   print("count all poss keyboard states from transitions:" + str(len(all_possible_keyboard_states_from_transitions)))
-    #   print()
-
+        # all_possible_keyboard_states_from_observations = \
+        #   utils.get_all_possible_keyboard_states_from_observations(observation_array)
+        # print("all possible keyboard states from observations: " + str(all_possible_keyboard_states_from_observations))
+        # print("count all poss keyboard states from observations:" + str(len(all_possible_keyboard_states_from_observations)))
+        # print()
+        #
+        # all_possible_keyboard_states_from_transitions = \
+        #   utils.get_all_possible_keyboard_states_from_transitions(transition_array)
+        # print("all possible keyboard states from transitions: " + str(all_possible_keyboard_states_from_transitions))
+        # print("count all poss keyboard states from transitions:" + str(len(all_possible_keyboard_states_from_transitions)))
+        # print()
+        #
         # all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
         # print("count all states reduced: " + str(len(all_states_reduced)))
 
@@ -371,12 +368,79 @@ def run(n=1, parallel=False, with_list=False):
         #     file_handler.write_csv_row([output])
         #     print(output)
 
-    # x = 1
-    # print(analyzer.observation_probabilities[list(analyzer.observation_probabilities.keys())[x]])
-    # interval_plt.plot_single_interval_distribution(analyzer.observation_probabilities, list(analyzer.observation_probabilities.keys())[x])
 
-    # interval_plt.plot_key_press_interval_distribution(analyzer.observation_probabilities)
-    # interval_plt.plot_key_release_interval_distribution(analyzer.observation_probabilities)
+def plot_key_interval_distribution_for_hidden_state(user_id, x):
+    file_handler = FileHandler()
+    analyzer = KeyPairAnalyzer()
+    char_pairs = config.key_pairs
+    file_handler.set_path_and_file_name("", config.users_file_name)
+    file_handler.ensure_created()
+
+    for task_id in range(1, 2):
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            for (s1, s2) in char_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.calculate_probabilities()
+
+    print(analyzer.observation_probabilities[list(analyzer.observation_probabilities.keys())[x]])
+
+    interval_plt.plot_single_interval_distribution(
+        analyzer.observation_probabilities,
+        list(analyzer.observation_probabilities.keys())[x]
+    )
+
+
+def plot_key_interval_distribution(user_id):
+    file_handler = FileHandler()
+    analyzer = KeyPairAnalyzer()
+    char_pairs = config.key_pairs
+    file_handler.set_path_and_file_name("", config.users_file_name)
+    file_handler.ensure_created()
+
+    for task_id in range(1, 2):
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            for (s1, s2) in char_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.calculate_probabilities()
+
+    interval_plt.plot_key_press_interval_distribution(analyzer.observation_probabilities)
+    interval_plt.plot_key_release_interval_distribution(analyzer.observation_probabilities)
+
+
+def plot_key_changes_distribution(user_id):
+    file_handler = FileHandler()
+    analyzer = KeyPairAnalyzer()
+    char_pairs = config.key_pairs
+    file_handler.set_path_and_file_name("", config.users_file_name)
+    file_handler.ensure_created()
+
+    for task_id in range(1, 2):
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            for (s1, s2) in char_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.calculate_probabilities()
+
+    stroke_plt.plot_key_changes_distribution(analyzer.observation_probabilities)
+
+
+def plot_overlapping_vs_non_overlapping_for_user(user_id):
+    stroke_plt.plot_overlapping_vs_non_overlapping_for_user(user_id)
+
+
+def plot_overlapping_keystrokes_distribution():
+    stroke_plt.plot_overlapping_keystrokes_distribution()
 
 
 def check_passwords_for_double(password_list=None, handler=None, n=0):
@@ -420,7 +484,19 @@ st = time.time()
 
 # run_debug()
 # run_debug_2(n=2, with_list=False)
-run(n=20, parallel=False, with_list=False)
+run(n=5, parallel=False, with_list=False)
+
+# plot_key_interval_distribution_for_hidden_state("4810", 3)      # p -> p + u
+# plot_key_interval_distribution_for_hidden_state("4810", 158)    # 4 + q -> q
+# plot_key_interval_distribution("4589")
+
+# plot_key_changes_distribution("4810")
+
+# plot_overlapping_vs_non_overlapping_for_user("4810")
+# plot_overlapping_vs_non_overlapping_for_user("9222")
+
+# plot_overlapping_keystrokes_distribution()
+
 
 # check_passwords_for_double(n=500)
 

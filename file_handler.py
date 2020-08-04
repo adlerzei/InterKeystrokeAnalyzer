@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import config
 
 
 def make_file_name(user_id, task_id, string_to_enter=""):
@@ -15,13 +16,9 @@ class FileHandler:
     def __init__(self):
         self.path = ""
         self.file_name = ""
-        self.vera_crypt_volume = 1
-
-    def set_vera_crypt_volume(self, num):
-        self.vera_crypt_volume = num
 
     def set_path_and_file_name(self, sub_path, file_name):
-        parent_path = "/media/veracrypt" + str(self.vera_crypt_volume) + "/"
+        parent_path = config.data_base_folder
         self.path = str(parent_path) + str(sub_path)
         self.file_name = str(file_name)
 
