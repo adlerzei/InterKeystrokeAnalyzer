@@ -6,6 +6,7 @@ class KeyPairAnalyzer:
 
     def __init__(self):
         self.packet_list = []
+        self.file_name = ""
         self.transition_probabilities = {}
         self.observation_probabilities = {}
         self.initialization_vector = {}
@@ -16,6 +17,7 @@ class KeyPairAnalyzer:
 
     def read_packet_list(self, handler):
         self.packet_list = handler.read_csv_to_list()
+        self.file_name = handler.file_name
 
         del self.packet_list[0]
 
@@ -141,7 +143,7 @@ class KeyPairAnalyzer:
 
             denominator = (((math.pi * 2) ** 0.5) * standard_deviation)
             # finally: normalize
-            for sniff_intervals in range(100):
+            for sniff_intervals in range(50):
                 numerator = math.exp(-(((sniff_intervals - mean) ** 2) / (2 * (standard_deviation ** 2))))
                 observ_dict[sniff_intervals] = numerator / denominator
 
@@ -193,3 +195,66 @@ class KeyPairAnalyzer:
             # count max overlapping
             if count > self.max_overlapping:
                 self.max_overlapping = count
+
+    def check_data_consistency(self):
+        i = 0
+        x = 100
+        old_packet = None
+        same_packet_content = 0
+        same_packet_content_list = []
+        packet_interval_zero = 0
+        packet_interval_zero_list = []
+        packet_interval_greater_x = 0
+        packet_interval_greater_x_list = []
+        packet_count_per_recording_greater_4 = 0
+        packet_count_per_recording_greater_4_list = []
+        # packet_count_per_recording_smaller_4 = 0
+        # packet_count_per_recording_smaller_4_list = []
+        packet_count_per_recording = 0
+        for packet in self.packet_list:
+            # if i != int(packet[0]) and i != 0 and packet_count_per_recording < 4:
+            #     packet_count_per_recording_smaller_4 += 1
+            #     packet_count_per_recording_smaller_4_list.append(int(packet[0])-1)
+
+            if i != int(packet[0]):
+                packet_count_per_recording = 0
+            packet_count_per_recording += 1
+
+            if old_packet is not None:
+                if (old_packet[5], old_packet[6]) == (packet[5], packet[6]):
+                    same_packet_content += 1
+                    same_packet_content_list.append(packet[0])
+
+            if i == int(packet[0]) and int(packet[2]) == 0:
+                packet_interval_zero += 1
+                packet_interval_zero_list.append(packet[0])
+
+            if i == int(packet[0]) and int(packet[2]) > x:
+                packet_interval_greater_x += 1
+                packet_interval_greater_x_list.append(packet[0])
+
+            if packet_count_per_recording > 4:
+                packet_count_per_recording_greater_4 += 1
+                if packet[0] not in packet_count_per_recording_greater_4_list:
+                    packet_count_per_recording_greater_4_list.append(packet[0])
+
+            if i != int(packet[0]) and i != int(packet[0]) - 1:
+                print(self.file_name + " wrong packet numbering " + ": packet no " + packet[0])
+
+            i = int(packet[0])
+            old_packet = packet
+
+        if same_packet_content > 0:
+            print(self.file_name + " --> same packet content: " + str(same_packet_content) + " times: " + str(same_packet_content_list))
+
+        if packet_interval_zero > 0:
+            print(self.file_name + " --> packet interval zero: " + str(packet_interval_zero) + " times: " + str(packet_interval_zero_list))
+
+        if packet_interval_greater_x > 0:
+            print(self.file_name + " --> packet interval greater " + str(x) + ": " + str(packet_interval_greater_x) + " times: " + str(packet_interval_greater_x_list))
+
+        if packet_count_per_recording_greater_4 > 0:
+            print(self.file_name + " --> packet count per recording greater 4: " + str(packet_count_per_recording_greater_4) + " times: " + str(packet_count_per_recording_greater_4_list))
+
+        # if packet_count_per_recording_smaller_4 > 0:
+        #     print(self.file_name + " --> packet count per recording smaller 4: " + str(packet_count_per_recording_smaller_4) + " times: " + str(packet_count_per_recording_smaller_4_list))

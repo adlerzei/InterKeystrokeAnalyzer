@@ -104,3 +104,4 @@ class FileHandler:
 
     def clear_file(self):
         open(self.path + self.file_name, mode="w")
+

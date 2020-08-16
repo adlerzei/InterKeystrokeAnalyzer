@@ -1,0 +1,44 @@
+% This file was created by tikzplotlib v0.9.3.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.12156862745098,0.466666666666667,0.705882352941177}
+
+\begin{axis}[
+axis line style={white!80!black},
+height=\figH,
+tick align=outside,
+tick label style={font=\footnotesize},
+tick pos=left,
+width=\figW,
+x grid style={white!80!black},
+xlabel={Latency (sniff intervals)},
+xmajorgrids,
+xmin=-0.55, xmax=11.55,
+xtick distance=2,
+xtick style={color=white!15!black},
+y grid style={white!80!black},
+ylabel={Information Gain (bits)},
+ymajorgrids,
+ymin=-0.149676622778625, ymax=1.32126096975233,
+ytick distance=0.25,
+ytick style={color=white!15!black}
+]
+\addplot [only marks, mark=*, draw=color0, fill=color0, colormap/blackwhite]
+table{%
+x                      y
+0 0.721534779754236
+1 -0.0699094418088384
+2 -0.0828158231181275
+3 0.253545493308606
+4 0.560865689391303
+5 0.643727128275281
+6 0.530364103277584
+7 0.234282645418165
+8 0.0442531392760266
+9 0.576928907895466
+10 1.08835328029384
+11 1.25440017009183
+};
+\end{axis}
+
+\end{tikzpicture}

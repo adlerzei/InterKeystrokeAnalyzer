@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 from tikzplotlib import save as tikz_save
 from scipy.stats import norm
+from scipy.interpolate import interp1d
 import numpy as np
 import utils
 import config
+import math
 
 plt.style.use(config.matplotlib_style)
 
@@ -183,3 +185,140 @@ def plot_key_release_interval_distribution(observation_probabilities):
     )
 
     plt.show()
+
+
+def get_state_distribution(observation_probabilities):
+    state_distribution = {}
+    total = 0
+    for state in observation_probabilities:
+        state_distribution[state] = 0
+        for sniff_intervals in observation_probabilities[state]:
+            state_distribution[state] += observation_probabilities[state][sniff_intervals]
+            total += observation_probabilities[state][sniff_intervals]
+
+    for state in state_distribution:
+        state_distribution[state] /= total
+
+    return state_distribution
+
+
+def calculate_pr_q_y0(observation_probabilities, sniff_intervals, state_to_calc, state_distribution=None):
+    denominator = 0
+    for state in observation_probabilities:
+        if state_distribution is None:
+            denominator += observation_probabilities[state][sniff_intervals] * 1 / len(observation_probabilities)
+        else:
+            denominator += observation_probabilities[state][sniff_intervals] * state_distribution[state]
+
+    if state_distribution is None:
+        numerator = observation_probabilities[state_to_calc][sniff_intervals] * 1 / len(observation_probabilities)
+    else:
+        numerator = observation_probabilities[state_to_calc][sniff_intervals] * state_distribution[state_to_calc]
+
+    return numerator / denominator
+
+
+def calculate_entropy(observation_probabilities, sniff_intervals, state_distribution=None):
+    entropy = 0
+    for state in observation_probabilities:
+        pr_q_y0 = calculate_pr_q_y0(observation_probabilities, sniff_intervals, state, state_distribution)
+        if pr_q_y0 > 0:
+            entropy += pr_q_y0 * math.log2(pr_q_y0)
+    entropy = -entropy
+    return entropy
+
+
+def calculate_entropy_distribution(observation_probabilities, x, state_distribution=None):
+    entropy_distribution = np.empty(x)
+    for i in range(x):
+        entropy_distribution[i] = calculate_entropy(observation_probabilities, i, state_distribution)
+    return entropy_distribution
+
+
+def plot_entropy_distribution(observation_probabilities, state_distribution=None):
+    x = 12
+    entropy_distribution = calculate_entropy_distribution(observation_probabilities, x, state_distribution)
+    plt.xlabel('Latency (sniff intervals)', fontsize=16)
+    plt.ylabel('Entropy (bits)', fontsize=16)
+    plt.scatter(range(x), entropy_distribution)
+
+    tikz_save(
+        "fig/entropy_distribution.tex",
+        axis_height='\\figH',
+        axis_width='\\figW',
+        extra_axis_parameters=["tick label style={font=\\footnotesize}", "xtick distance=2", "ytick distance=0.25"]
+    )
+
+    plt.show()
+
+
+def calculate_information_gain_distribution(observation_probabilities, x, state_distribution=None):
+    entropy_distribution = calculate_entropy_distribution(observation_probabilities, x, state_distribution)
+    if state_distribution is None:
+        start_entropy = math.log2(len(observation_probabilities))
+    else:
+        start_entropy = 0
+        for state in state_distribution:
+            start_entropy += state_distribution[state] * math.log2(state_distribution[state])
+        start_entropy = -start_entropy
+
+    information_gain_distribution = np.array([start_entropy - new_entropy for new_entropy in entropy_distribution])
+    return information_gain_distribution
+
+
+def plot_information_gain_distribution(observation_probabilities, state_distribution=None):
+    x = 12
+    information_gain_distribution = calculate_information_gain_distribution(observation_probabilities, x, state_distribution)
+    plt.xlabel('Latency (sniff intervals)', fontsize=16)
+    plt.ylabel('Information Gain (bits)', fontsize=16)
+    plt.scatter(range(x), information_gain_distribution)
+
+    tikz_save(
+        "fig/information_gain_distribution.tex",
+        axis_height='\\figH',
+        axis_width='\\figW',
+        extra_axis_parameters=["tick label style={font=\\footnotesize}", "xtick distance=2", "ytick distance=0.25"]
+    )
+
+    plt.show()
+
+
+def calculate_pr_y0(observation_probabilities, y0, state_distribution=None):
+    pr_y0 = 0
+    for state in observation_probabilities:
+        if state_distribution is None:
+            pr_y0 += observation_probabilities[state][y0] * 1 / len(observation_probabilities)
+        else:
+            pr_y0 += observation_probabilities[state][y0] * state_distribution[state]
+    return pr_y0
+
+
+def calculate_information_gain(observation_probabilities, state_distribution=None):
+    x = 12
+    if state_distribution is None:
+        start_entropy = math.log2(len(observation_probabilities))
+    else:
+        start_entropy = 0
+        for state in state_distribution:
+            start_entropy += state_distribution[state] * math.log2(state_distribution[state])
+        start_entropy = -start_entropy
+
+    new_entropy = 0
+    for i in range(x):
+        pr_y0 = calculate_pr_y0(observation_probabilities, i, state_distribution)
+        entropy = calculate_entropy(observation_probabilities, i, state_distribution)
+        new_entropy += pr_y0 * entropy
+
+    return start_entropy - new_entropy
+
+
+def calculate_h0(observation_probabilities, state_distribution=None):
+    if state_distribution is None:
+        start_entropy = math.log2(len(observation_probabilities))
+    else:
+        start_entropy = 0
+        for state in state_distribution:
+            start_entropy += state_distribution[state] * math.log2(state_distribution[state])
+        start_entropy = -start_entropy
+
+    return start_entropy

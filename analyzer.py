@@ -373,8 +373,6 @@ def plot_key_interval_distribution_for_hidden_state(user_id, x):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     char_pairs = config.key_pairs
-    file_handler.set_path_and_file_name("", config.users_file_name)
-    file_handler.ensure_created()
 
     for task_id in range(1, 2):
         if utils.is_task_completed(user_id, task_id, file_handler):
@@ -398,8 +396,6 @@ def plot_key_interval_distribution(user_id):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     char_pairs = config.key_pairs
-    file_handler.set_path_and_file_name("", config.users_file_name)
-    file_handler.ensure_created()
 
     for task_id in range(1, 2):
         if utils.is_task_completed(user_id, task_id, file_handler):
@@ -415,12 +411,36 @@ def plot_key_interval_distribution(user_id):
     interval_plt.plot_key_release_interval_distribution(analyzer.observation_probabilities)
 
 
+def plot_entropy_and_information_gain_distribution(user_id):
+    file_handler = FileHandler()
+    analyzer = KeyPairAnalyzer()
+    char_pairs = config.key_pairs
+
+    for task_id in range(1, 2):
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            for (s1, s2) in char_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.calculate_probabilities()
+
+    # state_distribution = None
+    state_distribution = interval_plt.get_state_distribution(analyzer.observation_probabilities)
+
+    analyzer.normalize_probabilities()
+
+    interval_plt.plot_entropy_distribution(analyzer.observation_probabilities, state_distribution)
+    interval_plt.plot_information_gain_distribution(analyzer.observation_probabilities, state_distribution)
+    information_gain = interval_plt.calculate_information_gain(analyzer.observation_probabilities, state_distribution)
+    print("Information Gain: " + str(information_gain))
+
+
 def plot_key_changes_distribution(user_id):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     char_pairs = config.key_pairs
-    file_handler.set_path_and_file_name("", config.users_file_name)
-    file_handler.ensure_created()
 
     for task_id in range(1, 2):
         if utils.is_task_completed(user_id, task_id, file_handler):
@@ -441,6 +461,39 @@ def plot_overlapping_vs_non_overlapping_for_user(user_id):
 
 def plot_overlapping_keystrokes_distribution():
     stroke_plt.plot_overlapping_keystrokes_distribution()
+
+
+def calculate_information_gain_for_all_users():
+    file_handler = FileHandler()
+    char_pairs = config.key_pairs
+    file_handler.set_path_and_file_name("", config.users_file_name)
+    file_handler.ensure_created()
+    user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
+
+    for user_id in user_list:
+        analyzer = KeyPairAnalyzer()
+        print("User: " + str(user_id))
+        for task_id in range(1, 2):
+            if utils.is_task_completed(user_id, task_id, file_handler):
+                for (s1, s2) in char_pairs:
+                    string_to_enter = s1 + s2
+                    file_name = make_file_name(user_id, task_id, string_to_enter)
+                    file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                    analyzer.read_packet_list(file_handler)
+                    analyzer.calculate_probabilities()
+
+        state_distribution = None
+        # state_distribution = interval_plt.get_state_distribution(analyzer.observation_probabilities)
+
+        analyzer.normalize_probabilities()
+
+        h0 = interval_plt.calculate_h0(analyzer.observation_probabilities, state_distribution)
+        information_gain = interval_plt.calculate_information_gain(analyzer.observation_probabilities,
+                                                                   state_distribution)
+        print("H0: " + str(h0))
+        print("Information Gain: " + str(information_gain))
+        print()
 
 
 def check_passwords_for_double(password_list=None, handler=None, n=0):
@@ -480,11 +533,47 @@ def check_passwords_for_double(password_list=None, handler=None, n=0):
     return used_passwords, double_passwords
 
 
+def check_data_for_inconsistencies():
+    file_handler = FileHandler()
+    char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
+    file_handler.set_path_and_file_name("", config.users_file_name)
+    file_handler.ensure_created()
+    user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
+
+    for user_id in user_list:
+        analyzer = KeyPairAnalyzer()
+        print()
+        print("User: " + str(user_id))
+
+        task_id = 1
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            for (s1, s2) in char_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.check_data_consistency()
+
+        task_id = 2
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            for (s1, s2) in shift_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.check_data_consistency()
+
+
 st = time.time()
+
+check_data_for_inconsistencies()
 
 # run_debug()
 # run_debug_2(n=2, with_list=False)
-run(n=5, parallel=False, with_list=False)
+# run(n=1, parallel=False, with_list=False)
 
 # plot_key_interval_distribution_for_hidden_state("4810", 3)      # p -> p + u
 # plot_key_interval_distribution_for_hidden_state("4810", 158)    # 4 + q -> q
@@ -496,6 +585,11 @@ run(n=5, parallel=False, with_list=False)
 # plot_overlapping_vs_non_overlapping_for_user("9222")
 
 # plot_overlapping_keystrokes_distribution()
+
+# plot_entropy_and_information_gain_distribution("4810")
+# plot_entropy_and_information_gain_distribution("4589")
+
+# calculate_information_gain_for_all_users()
 
 
 # check_passwords_for_double(n=500)

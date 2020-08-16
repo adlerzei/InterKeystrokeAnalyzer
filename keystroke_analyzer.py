@@ -192,11 +192,11 @@ def plot_key_changes_distribution(observation_probabilities):
 
     if 2 in key_release_count:
         two_changes_values.append(key_release_count[2])
-        two_changes_labels.append("2x Release")
+        two_changes_labels.append("\\(2\\times\\) Release")
 
     if 2 in key_press_count:
         two_changes_values.append(key_press_count[2])
-        two_changes_labels.append("2x Press")
+        two_changes_labels.append("\\(2\\times\\) Press")
 
     explode = tuple(([0.0] * (len(two_changes_values) - 1)) + [0.1])
     fig = plt.figure()

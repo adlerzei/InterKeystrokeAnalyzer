@@ -1,0 +1,33 @@
+% This file was created by tikzplotlib v0.9.3.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.12156862745098,0.466666666666667,0.705882352941177}
+
+\begin{axis}[
+axis line style={white!80!black},
+height=\figH,
+tick align=outside,
+tick label style={font=\footnotesize},
+tick pos=left,
+width=\figW,
+x grid style={white!80!black},
+xlabel={Latency (sniff intervals)},
+xmajorgrids,
+xmin=-0.64, xmax=4.64,
+xtick distance=1,
+xtick style={color=white!15!black},
+y grid style={white!80!black},
+ylabel={Entropy (bits)},
+ymajorgrids,
+ymin=0, ymax=5.25,
+ytick distance=1,
+ytick style={color=white!15!black}
+]
+\draw[draw=none,fill=color0] (axis cs:-0.4,0) rectangle (axis cs:0.4,3);
+\draw[draw=none,fill=color0] (axis cs:0.6,0) rectangle (axis cs:1.4,4);
+\draw[draw=none,fill=color0] (axis cs:1.6,0) rectangle (axis cs:2.4,1);
+\draw[draw=none,fill=color0] (axis cs:2.6,0) rectangle (axis cs:3.4,2);
+\draw[draw=none,fill=color0] (axis cs:3.6,0) rectangle (axis cs:4.4,5);
+\end{axis}
+
+\end{tikzpicture}
