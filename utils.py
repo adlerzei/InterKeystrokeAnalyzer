@@ -23,10 +23,7 @@ def try_eval_tuple(to_eval):
 
             inner_eval_0 = (inner_eval_0_0, inner_eval_0_1)
         else:
-            if not outer_eval[0]:
-                inner_eval_0 = outer_eval[0]
-            else:
-                inner_eval_0 = eval(outer_eval[0])
+            inner_eval_0 = outer_eval[0]
 
         if type(outer_eval[1]) is tuple:
             if not outer_eval[1][0]:
@@ -254,6 +251,11 @@ def fill_observation_array(all_states, recorded_observations):
             str_possible_old_state = to_string_tuple(possible_old_state)
             str_possible_next_state = to_string_tuple(possible_next_state)
 
+            if (str_possible_old_state, str_possible_next_state) in recorded_observations:
+                observation_array[(str_possible_old_state, str_possible_next_state)] = \
+                    recorded_observations[(str_possible_old_state, str_possible_next_state)]
+                continue
+
             if (str_possible_old_state, str_possible_next_state) not in observation_array:
                 observation_array[(str_possible_old_state, str_possible_next_state)] = {}
 
@@ -293,6 +295,11 @@ def fill_transition_array(all_states, recoded_transitions):
 
             str_possible_old_state = to_string_tuple(possible_old_state)
             str_possible_next_state = to_string_tuple(possible_next_state)
+
+            if (str_possible_old_state, str_possible_next_state) in recoded_transitions:
+                transition_array[(str_possible_old_state, str_possible_next_state)] = \
+                    recoded_transitions[(str_possible_old_state, str_possible_next_state)]
+                continue
 
             for (_, last_state) in recoded_transitions[(old_state, next_state)]:
                 last_state_evaluated = try_eval_tuple(last_state)
@@ -444,3 +451,31 @@ def make_numpy_array_from_state_space(state_space):
     out = np.empty(len(state_space), dtype=object)
     out[:] = state_space
     return out
+
+
+def get_count_all_possible_passwords(n):
+    potential_successors = {}
+    for first_key_pair in config.key_pairs:
+        for next_key_pair in config.key_pairs:
+            if first_key_pair[1] != next_key_pair[0]:
+                continue
+
+            if first_key_pair not in potential_successors:
+                potential_successors[first_key_pair] = []
+
+            potential_successors[first_key_pair].append(next_key_pair)
+
+    password_count = 0
+    for key_pair in config.key_pairs:
+        password_count += get_passwords_count(n-2, key_pair, potential_successors)
+    return password_count
+
+
+def get_passwords_count(n, actual_key_pair, potential_successors):
+    if n == 0:
+        return 1
+    else:
+        password_count = 0
+        for next_key_pair in potential_successors[actual_key_pair]:
+            password_count += get_passwords_count(n - 1, next_key_pair, potential_successors)
+        return password_count

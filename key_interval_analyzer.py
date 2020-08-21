@@ -10,9 +10,62 @@ import math
 plt.style.use(config.matplotlib_style)
 
 
-def plot_key_interval_distribution(observation_probabilities):
-    print("not implemented yet...")
-    # todo
+def plot_all_key_interval_distributions(observation_probabilities):
+    max_x_axis = 9
+    for hidden_state in observation_probabilities:
+        # Fit a normal distribution to the data:
+        x_max = 0
+        y_max = 0
+
+        # Filter
+        key_intervals = {k: v for k, v in observation_probabilities[hidden_state].items() if 0 <= k <= max_x_axis}
+
+        for sniff_interval in key_intervals:
+            x_max = sniff_interval if sniff_interval > x_max else x_max
+            y_max = key_intervals[sniff_interval] if key_intervals[sniff_interval] > y_max else y_max
+
+        total = 0
+        mean = 0
+        for sniff_intervals in key_intervals:
+            total += key_intervals[sniff_intervals]
+            mean += sniff_intervals * key_intervals[sniff_intervals]
+
+        if total == 0:
+            continue
+
+        mean /= total
+
+        std = 0
+        for sniff_intervals in key_intervals:
+            std += ((sniff_intervals - mean) ** 2) * key_intervals[sniff_intervals]
+        std = (std / total) ** 0.5
+
+        if std == 0:
+            std = 1
+
+        x_max = max_x_axis if x_max >= max_x_axis - 2 else x_max + 2
+        x = np.linspace(0, x_max, 100)
+        y = norm.pdf(x, mean, std)
+        if max(y) > 1:
+            continue
+
+        if max(y) > 0.95:
+            print(hidden_state)
+
+        plt.plot(x, y, 'k', linewidth=0.5)
+
+        plt.ylabel('Probability', fontsize=16)
+        plt.xlabel('Latency (sniff intervals)', fontsize=16)
+
+        tikz_save(
+            "fig/all_key_interval_distributions.tex",
+            float_format='.3g',
+            axis_height='\\figH',
+            axis_width='\\figW',
+            extra_axis_parameters=["tick label style={font=\\footnotesize}", "xtick distance=1", "ytick distance=0.2"]
+        )
+
+    plt.show()
 
 
 def plot_single_interval_distribution(observation_probabilities, hidden_state):
@@ -35,6 +88,9 @@ def plot_single_interval_distribution(observation_probabilities, hidden_state):
         std += ((sniff_intervals - mean) ** 2) * observation_probabilities[hidden_state][sniff_intervals]
     std = (std / total) ** 0.5
 
+    if std == 0:
+        std = 1
+
     # Plot the Hist
     plt.bar(observation_probabilities[hidden_state].keys(), observation_probabilities[hidden_state].values())
 
@@ -45,7 +101,7 @@ def plot_single_interval_distribution(observation_probabilities, hidden_state):
     plt.plot(x, y, 'k', linewidth=2)
 
     plt.ylabel('Frequency', fontsize=16)
-    # plt.xlabel('Sniff Intervals for ' + str(hidden_state), fontsize=12)
+    plt.xlabel('Latency (sniff intervals)', fontsize=16)
 
     tikz_save(
         "fig/single_interval_distribution.tex",
@@ -55,6 +111,17 @@ def plot_single_interval_distribution(observation_probabilities, hidden_state):
     )
 
     plt.show()
+
+
+def get_interval_distribution(observation_probabilities):
+    key_press_intervals = {}
+    for hidden_state in observation_probabilities:
+        for sniff_interval in observation_probabilities[hidden_state]:
+            if sniff_interval not in key_press_intervals:
+                key_press_intervals[sniff_interval] = 0
+
+            key_press_intervals[sniff_interval] += observation_probabilities[hidden_state][sniff_interval]
+    return key_press_intervals
 
 
 def get_key_press_interval_distribution(observation_probabilities):
@@ -93,6 +160,28 @@ def get_key_release_interval_distribution(observation_probabilities):
     return key_release_intervals
 
 
+def plot_interval_distribution(observation_probabilities):
+    key_intervals = get_interval_distribution(observation_probabilities)
+
+    # Filter
+    # key_intervals = {k: v for k, v in key_intervals.items() if k <= 12}
+
+    # Plot the Hist
+    plt.bar(key_intervals.keys(), key_intervals.values())
+
+    plt.ylabel('Frequency', fontsize=16)
+    plt.xlabel('Latency (sniff intervals)', fontsize=16)
+
+    tikz_save(
+        "fig/key_interval_distribution_with_shift.tex",
+        axis_height='\\figH',
+        axis_width='\\figW',
+        extra_axis_parameters=["tick label style={font=\\footnotesize}", "xtick distance=2", "ytick distance=100"]
+    )
+
+    plt.show()
+
+
 def plot_key_press_interval_distribution(observation_probabilities):
     key_press_intervals = get_key_press_interval_distribution(observation_probabilities)
 
@@ -118,6 +207,9 @@ def plot_key_press_interval_distribution(observation_probabilities):
         std += ((sniff_intervals - mean) ** 2) * key_press_intervals[sniff_intervals]
     std = (std / total) ** 0.5
 
+    if std == 0:
+        std = 1
+
     # Plot the Hist
     plt.bar(key_press_intervals.keys(), key_press_intervals.values())
 
@@ -128,7 +220,7 @@ def plot_key_press_interval_distribution(observation_probabilities):
     plt.plot(x, y, 'k', linewidth=2)
 
     plt.ylabel('Frequency', fontsize=16)
-    # plt.xlabel('Sniff Intervals for Key Press Events', fontsize=12)
+    plt.xlabel('Latency (sniff intervals)', fontsize=16)
 
     tikz_save(
         "fig/press_interval_distribution.tex",
@@ -165,6 +257,9 @@ def plot_key_release_interval_distribution(observation_probabilities):
         std += ((sniff_intervals - mean) ** 2) * key_release_intervals[sniff_intervals]
     std = (std / total) ** 0.5
 
+    if std == 0:
+        std = 1
+
     # Plot the Hist
     plt.bar(key_release_intervals.keys(), key_release_intervals.values())
 
@@ -175,7 +270,7 @@ def plot_key_release_interval_distribution(observation_probabilities):
     plt.plot(x, y, 'k', linewidth=2)
 
     plt.ylabel('Frequency', fontsize=16)
-    # plt.xlabel('Sniff Intervals for Key Release Events', fontsize=12)
+    plt.xlabel('Latency (sniff intervals)', fontsize=16)
 
     tikz_save(
         "fig/release_interval_distribution.tex",

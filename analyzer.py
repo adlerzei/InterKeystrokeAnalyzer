@@ -14,17 +14,6 @@ def run_debug(n=1, parallel=False, with_list=False):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     password_analyzer = PasswordAnalyzer()
-    file_handler.set_path_and_file_name("", config.users_file_name)
-    file_handler.ensure_created()
-
-    file_name = make_file_name("4810", "1", "4a")
-    file_handler.make_training_read_path_and_file(file_name, "4810", "1", "4a")
-
-    analyzer.read_packet_list(file_handler)
-    analyzer.calculate_probabilities()
-    analyzer.normalize_probabilities()
-    analyzer.calculate_initialization_vector()
-    analyzer.normalize_initialization_vector()
 
     file_name = make_file_name("4810", "4", "niequai4")
     file_handler.make_test_read_path_and_file(file_name, "4810", "4", "niequai4")
@@ -42,6 +31,17 @@ def run_debug(n=1, parallel=False, with_list=False):
         utils.get_all_states_with_length(config.chars, False, password_analyzer.max_overlapping_keystrokes))
     all_states = utils.sort_states(all_states)
 
+    file_name = make_file_name("4810", "1", "4a")
+    file_handler.make_training_read_path_and_file(file_name, "4810", "1", "4a")
+
+    analyzer.read_packet_list(file_handler)
+    analyzer.calculate_probabilities()
+    analyzer.calculate_initialization_vector()
+    analyzer.transition_probabilities = utils.fill_transition_array(all_states, analyzer.transition_probabilities)
+    analyzer.observation_probabilities = utils.fill_observation_array(all_states, analyzer.observation_probabilities)
+    analyzer.normalize_probabilities()
+    analyzer.normalize_initialization_vector()
+
     file_handler.set_path_and_file_name("debug_data/", "viterbi_debug_data")
     observation_list = file_handler.read_csv_to_list()
     observation_sequence = []
@@ -49,8 +49,8 @@ def run_debug(n=1, parallel=False, with_list=False):
         observation_sequence.append(observation_list[i][2])
 
     initialization_vector = analyzer.initialization_vector
-    transition_array = utils.fill_transition_array(all_states, analyzer.transition_probabilities)
-    observation_array = utils.fill_observation_array(all_states, analyzer.observation_probabilities)
+    transition_array = analyzer.transition_probabilities
+    observation_array = analyzer.observation_probabilities
 
     all_possible_states = utils.get_all_possible_states(observation_array)
     print("all poss states: " + str(len(all_possible_states)))
@@ -219,49 +219,53 @@ def run_debug_2(n=1, with_list=False):
     print(result[1])
 
 
-def run(n=1, parallel=False, with_list=False):
+def run(user_id, password_task_id, password_to_classify, password_id, n=1, parallel=False, with_list=False):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     password_analyzer = PasswordAnalyzer()
     char_pairs = config.key_pairs
     shift_pairs = keygen.get_shift_pairs()
-    file_handler.set_path_and_file_name("", config.users_file_name)
-    file_handler.ensure_created()
-    user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
 
-    for user_id in user_list:
-        if user_id != "4810":
-            continue
-            
-        file_name = make_file_name(user_id, "4", "niequai4")
-        file_handler.make_test_read_path_and_file(file_name, user_id, "4", "niequai4")
+    file_name = make_file_name(user_id, password_task_id, password_to_classify)
+    file_handler.make_test_read_path_and_file(file_name, user_id, password_task_id, password_to_classify)
 
-        password_analyzer.set_password("niequai4")
-        password_analyzer.set_password_id(5)
-        password_analyzer.read_packet_list(file_handler)
-        password_analyzer.read_password_data()
-        password_analyzer.read_other_packet_lists(user_id)
-        password_analyzer.calculate_max_overlapping_keystrokes()
+    password_analyzer.set_password(password_to_classify)
+    password_analyzer.set_password_id(password_id)
+    password_analyzer.read_packet_list(file_handler)
+    password_analyzer.read_password_data()
+    password_analyzer.read_other_packet_lists(user_id)
+    password_analyzer.calculate_max_overlapping_keystrokes()
 
-        # len(all_states) = 9949 -> sum(15 choose x, x=1 to 6) + 1
-        # all_states = utils.get_all_states(utils.extend_list_with_empty(config.chars), False)
-        all_states = utils.extend_list_with_empty_state(
-            utils.get_all_states_with_length(config.chars, False, password_analyzer.max_overlapping_keystrokes))
-        all_states = utils.sort_states(all_states)
+    # len(all_states) = 9949 -> sum(15 choose x, x=1 to 6) + 1
+    # all_states = utils.get_all_states(utils.extend_list_with_empty(config.chars), False)
+    all_states = utils.extend_list_with_empty_state(
+        utils.get_all_states_with_length(config.chars, False, password_analyzer.max_overlapping_keystrokes))
+    all_states = utils.sort_states(all_states)
 
-        for task_id in range(1, 2):
-            if utils.is_task_completed(user_id, task_id, file_handler):
-                for (s1, s2) in char_pairs:
-                    string_to_enter = s1 + s2
-                    file_name = make_file_name(user_id, task_id, string_to_enter)
-                    file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+    for task_id in range(1, 2):
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            if task_id == 1:
+                key_pairs = char_pairs
+            elif task_id == 2:
+                key_pairs = shift_pairs
+            else:
+                break
 
-                    analyzer.read_packet_list(file_handler)
-                    analyzer.calculate_probabilities()
-                    analyzer.calculate_initialization_vector()
+            for (s1, s2) in key_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
 
-        analyzer.normalize_initialization_vector()
-        analyzer.normalize_probabilities()
+                analyzer.read_packet_list(file_handler)
+                analyzer.calculate_probabilities()
+                analyzer.calculate_initialization_vector()
+
+    analyzer.normalize_initialization_vector()
+
+    # analyzer.transition_probabilities = utils.fill_transition_array(all_states, analyzer.transition_probabilities)
+    # analyzer.observation_probabilities = utils.fill_observation_array(all_states, analyzer.observation_probabilities)
+
+    analyzer.normalize_probabilities()
 
     #   file_handler.make_training_read_path_and_file(config.transitions_file_name, user_id)
     #   analyzer.save_transition_probabilities(file_handler)
@@ -271,61 +275,43 @@ def run(n=1, parallel=False, with_list=False):
 
     #   analyzer.print_probabilities()
 
-        observation_sequence = password_analyzer.observation_sequence
-        initialization_vector = analyzer.initialization_vector
-        transition_array = utils.fill_transition_array(all_states, analyzer.transition_probabilities)
-        observation_array = utils.fill_observation_array(all_states, analyzer.observation_probabilities)
+    observation_sequence = password_analyzer.observation_sequence
+    initialization_vector = analyzer.initialization_vector
+    transition_array = analyzer.transition_probabilities
+    observation_array = analyzer.observation_probabilities
 
-        print("length observation_array: " + str(len(observation_array)))
-        print("length transition_array: " + str(len(transition_array)))
-        print()
+    print("length observation_array: " + str(len(observation_array)))
+    print("length transition_array: " + str(len(transition_array)))
+    print()
 
-        all_possible_states = utils.get_all_possible_states(observation_array)
-        print("count all poss states: " + str(len(all_possible_states)))
-        print()
+    all_possible_states = utils.get_all_possible_states(observation_array)
+    print("count all poss states: " + str(len(all_possible_states)))
+    print()
 
-        # all_possible_keyboard_states_from_observations = \
-        #   utils.get_all_possible_keyboard_states_from_observations(observation_array)
-        # print("all possible keyboard states from observations: " + str(all_possible_keyboard_states_from_observations))
-        # print("count all poss keyboard states from observations:" + str(len(all_possible_keyboard_states_from_observations)))
-        # print()
-        #
-        # all_possible_keyboard_states_from_transitions = \
-        #   utils.get_all_possible_keyboard_states_from_transitions(transition_array)
-        # print("all possible keyboard states from transitions: " + str(all_possible_keyboard_states_from_transitions))
-        # print("count all poss keyboard states from transitions:" + str(len(all_possible_keyboard_states_from_transitions)))
-        # print()
-        #
-        # all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
-        # print("count all states reduced: " + str(len(all_states_reduced)))
+    # all_possible_keyboard_states_from_observations = \
+    #   utils.get_all_possible_keyboard_states_from_observations(observation_array)
+    # print("all possible keyboard states from observations: " + str(all_possible_keyboard_states_from_observations))
+    # print("count all poss keyboard states from observations:" + str(len(all_possible_keyboard_states_from_observations)))
+    # print()
+    #
+    # all_possible_keyboard_states_from_transitions = \
+    #   utils.get_all_possible_keyboard_states_from_transitions(transition_array)
+    # print("all possible keyboard states from transitions: " + str(all_possible_keyboard_states_from_transitions))
+    # print("count all poss keyboard states from transitions:" + str(len(all_possible_keyboard_states_from_transitions)))
+    # print()
+    #
+    # all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
+    # print("count all states reduced: " + str(len(all_states_reduced)))
 
-        state_space = utils.make_numpy_array_from_state_space(all_possible_states)
-        IV = utils.make_numpy_array_from_initialisation_vector(all_possible_states, initialization_vector)
-        A = utils.make_numpy_array_from_transition_matrix(all_possible_states, transition_array)
-        B = utils.make_numpy_arrays_from_observation_matrix(all_possible_states, observation_array)
-        y = utils.make_numpy_array_from_observation_sequence(observation_sequence)
+    state_space = utils.make_numpy_array_from_state_space(all_possible_states)
+    IV = utils.make_numpy_array_from_initialisation_vector(all_possible_states, initialization_vector)
+    A = utils.make_numpy_array_from_transition_matrix(all_possible_states, transition_array)
+    B = utils.make_numpy_arrays_from_observation_matrix(all_possible_states, observation_array)
+    y = utils.make_numpy_array_from_observation_sequence(observation_sequence)
 
-        if not parallel:
-            if with_list:
-                results = viterbi.n_viterbi_with_list(
-                    all_possible_states,
-                    initialization_vector,
-                    transition_array,
-                    observation_array,
-                    observation_sequence,
-                    n
-                )
-            else:
-                results = viterbi.n_viterbi(
-                    state_space,
-                    IV,
-                    A,
-                    B,
-                    y,
-                    n
-                )
-        else:
-            results = viterbi.n_viterbi_parallel(
+    if not parallel:
+        if with_list:
+            results = viterbi.n_viterbi_with_list(
                 all_possible_states,
                 initialization_vector,
                 transition_array,
@@ -333,50 +319,87 @@ def run(n=1, parallel=False, with_list=False):
                 observation_sequence,
                 n
             )
+        else:
+            results = viterbi.n_viterbi(
+                state_space,
+                IV,
+                A,
+                B,
+                y,
+                n
+            )
+    else:
+        results = viterbi.n_viterbi_parallel(
+            all_possible_states,
+            initialization_vector,
+            transition_array,
+            observation_array,
+            observation_sequence,
+            n
+        )
 
-        for result in results:
-            print(result)
+    # for result in results:
+    #     print(result)
 
-        # file_handler.set_path_and_file_name("debug_data/out", "classified_state_sequences")
-        # file_handler.ensure_created()
-        # file_handler.clear_file()
-        # for result in results:
-        #     file_handler.write_csv_row([str(result)])
-        #
-        # outputs = []
-        # for result in results:
-        #     output = ""
-        #     changed = utils.get_key_events(('', ['', '', '', '', '', '']), result[0][0])
-        #     for change in changed:
-        #         if change[0] == '':
-        #             output += change[1]
-        #
-        #     for state in result:
-        #         changed = utils.get_key_events(state[0], state[1])
-        #         for change in changed:
-        #             if change[0] == '':
-        #                 output += change[1]
-        #
-        #     outputs.append(output)
-        #
-        # print()
-        # print()
-        # file_handler.set_path_and_file_name("debug_data/out/" + str(n), "classified_passwords")
-        # file_handler.ensure_created()
-        # file_handler.clear_file()
-        # for output in outputs:
-        #     file_handler.write_csv_row([output])
-        #     print(output)
+    # file_handler.set_path_and_file_name("debug_data/out", "classified_state_sequences")
+    # file_handler.ensure_created()
+    # file_handler.clear_file()
+    # for result in results:
+    #     file_handler.write_csv_row([str(result)])
+
+    outputs = []
+    for result in results[1]:
+        output = ""
+        changed = utils.get_key_events(('', ['', '', '', '', '', '']), result[0][0])
+        for change in changed:
+            if change[0] == '':
+                output += change[1]
+
+        for state in result:
+            changed = utils.get_key_events(state[0], state[1])
+            for change in changed:
+                if change[0] == '':
+                    output += change[1]
+
+        if output not in outputs:
+            outputs.append(output)
+
+    file_handler.set_path_and_file_name(
+        "classification_data/out/" +
+        user_id +
+        "/" +
+        password_task_id +
+        "/" +
+        password_to_classify +
+        "/" +
+        str(password_id) +
+        "/",
+        password_to_classify + "_" + str(password_id) + "_top" + str(n)
+    )
+    file_handler.ensure_created()
+    file_handler.clear_file()
+
+    for output in outputs:
+        file_handler.write_csv_row([output])
+        print(output)
 
 
 def plot_key_interval_distribution_for_hidden_state(user_id, x):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
 
     for task_id in range(1, 2):
         if utils.is_task_completed(user_id, task_id, file_handler):
-            for (s1, s2) in char_pairs:
+            if task_id == 1:
+                key_pairs = char_pairs
+            elif task_id == 2:
+                key_pairs = shift_pairs
+            else:
+                break
+
+            for (s1, s2) in key_pairs:
                 string_to_enter = s1 + s2
                 file_name = make_file_name(user_id, task_id, string_to_enter)
                 file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
@@ -392,14 +415,22 @@ def plot_key_interval_distribution_for_hidden_state(user_id, x):
     )
 
 
-def plot_key_interval_distribution(user_id):
+def plot_key_interval_distribution_for_user(user_id):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
 
-    for task_id in range(1, 2):
+    for task_id in range(1, 3):
         if utils.is_task_completed(user_id, task_id, file_handler):
-            for (s1, s2) in char_pairs:
+            if task_id == 1:
+                key_pairs = char_pairs
+            elif task_id == 2:
+                key_pairs = shift_pairs
+            else:
+                break
+
+            for (s1, s2) in key_pairs:
                 string_to_enter = s1 + s2
                 file_name = make_file_name(user_id, task_id, string_to_enter)
                 file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
@@ -407,18 +438,93 @@ def plot_key_interval_distribution(user_id):
                 analyzer.read_packet_list(file_handler)
                 analyzer.calculate_probabilities()
 
-    interval_plt.plot_key_press_interval_distribution(analyzer.observation_probabilities)
-    interval_plt.plot_key_release_interval_distribution(analyzer.observation_probabilities)
+    # interval_plt.plot_key_press_interval_distribution(analyzer.observation_probabilities)
+    # interval_plt.plot_key_release_interval_distribution(analyzer.observation_probabilities)
+    interval_plt.plot_interval_distribution(analyzer.observation_probabilities)
+
+
+def plot_all_key_interval_distributions_for_user(user_id):
+    file_handler = FileHandler()
+    analyzer = KeyPairAnalyzer()
+    char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
+
+    all_states = utils.extend_list_with_empty_state(
+        utils.get_all_states_with_length(config.chars, False, 2))
+    all_states = utils.sort_states(all_states)
+
+    for task_id in range(1, 2):
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            if task_id == 1:
+                key_pairs = char_pairs
+            elif task_id == 2:
+                key_pairs = shift_pairs
+            else:
+                break
+
+            for (s1, s2) in key_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.calculate_probabilities()
+
+    # observation_array = utils.fill_observation_array(all_states, analyzer.observation_probabilities)
+    observation_array = analyzer.observation_probabilities
+
+    interval_plt.plot_all_key_interval_distributions(observation_array)
+
+
+def plot_key_interval_distribution(user_list=None):
+    file_handler = FileHandler()
+    char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
+    analyzer = KeyPairAnalyzer()
+    if user_list is None:
+        file_handler.set_path_and_file_name("", config.users_file_name)
+        file_handler.ensure_created()
+        user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
+
+    for user_id in user_list:
+        for task_id in range(1, 3):
+            if utils.is_task_completed(user_id, task_id, file_handler):
+                if task_id == 1:
+                    key_pairs = char_pairs
+                elif task_id == 2:
+                    key_pairs = shift_pairs
+                else:
+                    break
+
+                for (s1, s2) in key_pairs:
+                    string_to_enter = s1 + s2
+                    file_name = make_file_name(user_id, task_id, string_to_enter)
+                    file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                    analyzer.read_packet_list(file_handler)
+                    analyzer.calculate_probabilities()
+
+    # interval_plt.plot_key_press_interval_distribution(analyzer.observation_probabilities)
+    # interval_plt.plot_key_release_interval_distribution(analyzer.observation_probabilities)
+    interval_plt.plot_interval_distribution(analyzer.observation_probabilities)
 
 
 def plot_entropy_and_information_gain_distribution(user_id):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
 
     for task_id in range(1, 2):
         if utils.is_task_completed(user_id, task_id, file_handler):
-            for (s1, s2) in char_pairs:
+            if task_id == 1:
+                key_pairs = char_pairs
+            elif task_id == 2:
+                key_pairs = shift_pairs
+            else:
+                break
+
+            for (s1, s2) in key_pairs:
                 string_to_enter = s1 + s2
                 file_name = make_file_name(user_id, task_id, string_to_enter)
                 file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
@@ -441,10 +547,18 @@ def plot_key_changes_distribution(user_id):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
 
     for task_id in range(1, 2):
         if utils.is_task_completed(user_id, task_id, file_handler):
-            for (s1, s2) in char_pairs:
+            if task_id == 1:
+                key_pairs = char_pairs
+            elif task_id == 2:
+                key_pairs = shift_pairs
+            else:
+                break
+
+            for (s1, s2) in key_pairs:
                 string_to_enter = s1 + s2
                 file_name = make_file_name(user_id, task_id, string_to_enter)
                 file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
@@ -455,17 +569,31 @@ def plot_key_changes_distribution(user_id):
     stroke_plt.plot_key_changes_distribution(analyzer.observation_probabilities)
 
 
-def plot_overlapping_vs_non_overlapping_for_user(user_id):
-    stroke_plt.plot_overlapping_vs_non_overlapping_for_user(user_id)
+def plot_overlapping_vs_non_overlapping_for_user(user_id, keystrokes=False, pie_chart=False):
+    stroke_plt.plot_overlapping_vs_non_overlapping_for_user(user_id, keystrokes, pie_chart)
 
 
-def plot_overlapping_keystrokes_distribution():
-    stroke_plt.plot_overlapping_keystrokes_distribution()
+def plot_overlapping_vs_non_overlapping(user_list=None, keystrokes=False, pie_chart=False):
+    stroke_plt.plot_overlapping_vs_non_overlapping(user_list, keystrokes, pie_chart)
+
+
+def plot_overlapping_keystrokes_distribution(user_list=None):
+    stroke_plt.plot_overlapping_keystrokes_distribution(user_list)
+
+
+def plot_overlapping_keystrokes_comparison(user_list=None, labels=None):
+    stroke_plt.plot_overlapping_keystrokes_comparison(user_list, labels)
+
+
+def calculate_all_possible_passwords_count(n):
+    print("All possible passwords count: " + str(utils.get_count_all_possible_passwords(n)))
 
 
 def calculate_information_gain_for_all_users():
     file_handler = FileHandler()
     char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
+
     file_handler.set_path_and_file_name("", config.users_file_name)
     file_handler.ensure_created()
     user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
@@ -475,7 +603,14 @@ def calculate_information_gain_for_all_users():
         print("User: " + str(user_id))
         for task_id in range(1, 2):
             if utils.is_task_completed(user_id, task_id, file_handler):
-                for (s1, s2) in char_pairs:
+                if task_id == 1:
+                    key_pairs = char_pairs
+                elif task_id == 2:
+                    key_pairs = shift_pairs
+                else:
+                    break
+
+                for (s1, s2) in key_pairs:
                     string_to_enter = s1 + s2
                     file_name = make_file_name(user_id, task_id, string_to_enter)
                     file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
@@ -494,6 +629,39 @@ def calculate_information_gain_for_all_users():
         print("H0: " + str(h0))
         print("Information Gain: " + str(information_gain))
         print()
+
+
+def calculate_number_of_hidden_states_for_user(user_id):
+    file_handler = FileHandler()
+    analyzer = KeyPairAnalyzer()
+    char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
+
+    all_states = utils.extend_list_with_empty_state(
+        utils.get_all_states_with_length(config.chars, False, 2))
+    all_states = utils.sort_states(all_states)
+
+    for task_id in range(1, 2):
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            if task_id == 1:
+                key_pairs = char_pairs
+            elif task_id == 2:
+                key_pairs = shift_pairs
+            else:
+                break
+
+            for (s1, s2) in key_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.calculate_probabilities()
+
+    # observation_array = utils.fill_observation_array(all_states, analyzer.observation_probabilities)
+    observation_array = analyzer.observation_probabilities
+    all_possible_states = utils.get_all_possible_states(observation_array)
+    print("Number of hidden state for user " + user_id + ": " + str(len(all_possible_states)))
 
 
 def check_passwords_for_double(password_list=None, handler=None, n=0):
@@ -554,7 +722,7 @@ def check_data_for_inconsistencies():
                 file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
 
                 analyzer.read_packet_list(file_handler)
-                analyzer.check_data_consistency()
+                analyzer.check_data_consistency(False)
 
         task_id = 2
         if utils.is_task_completed(user_id, task_id, file_handler):
@@ -564,35 +732,146 @@ def check_data_for_inconsistencies():
                 file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
 
                 analyzer.read_packet_list(file_handler)
-                analyzer.check_data_consistency()
+                analyzer.check_data_consistency(True)
+
+
+def count_all_bluetooth_packets():
+    file_handler = FileHandler()
+    analyzer = KeyPairAnalyzer()
+    password_analyzer = PasswordAnalyzer()
+    char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
+    file_handler.set_path_and_file_name("", config.users_file_name)
+    file_handler.ensure_created()
+    user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
+
+    for user_id in user_list:
+        task_id = 1
+        with_shift = False
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            for (s1, s2) in char_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                analyzer.read_packet_list(file_handler)
+                analyzer.check_data_consistency(False)
+
+        task_id = 2
+        if utils.is_task_completed(user_id, task_id, file_handler):
+            with_shift = True
+            for (s1, s2) in shift_pairs:
+                string_to_enter = s1 + s2
+                file_name = make_file_name(user_id, task_id, string_to_enter)
+                file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+        password_analyzer.read_other_packet_lists(user_id, with_shift)
+
+    packet_count = analyzer.bluetooth_packet_count + password_analyzer.bluetooth_packet_count
+    print("Bluetooth packet count: " + str(packet_count))
 
 
 st = time.time()
 
-check_data_for_inconsistencies()
+# check_data_for_inconsistencies()
+
+# -------------------------------- VITERBI ----------------------------------------------------- #
 
 # run_debug()
 # run_debug_2(n=2, with_list=False)
-# run(n=1, parallel=False, with_list=False)
+# run("4810", "4", "niequai4", 5, n=1, parallel=False, with_list=False)
+
+run("8150", "5", "ecia", 1, n=5000, parallel=False, with_list=False)
+run("8150", "5", "ecia", 2, n=5000, parallel=False, with_list=False)
+run("8150", "5", "ecia", 3, n=5000, parallel=False, with_list=False)
+run("8150", "5", "ecia", 4, n=5000, parallel=False, with_list=False)
+run("8150", "5", "ecia", 5, n=5000, parallel=False, with_list=False)
+
+run("8150", "5", "s4ci", 1, n=5000, parallel=False, with_list=False)
+run("8150", "5", "s4ci", 2, n=5000, parallel=False, with_list=False)
+run("8150", "5", "s4ci", 3, n=5000, parallel=False, with_list=False)
+run("8150", "5", "s4ci", 4, n=5000, parallel=False, with_list=False)
+run("8150", "5", "s4ci", 5, n=5000, parallel=False, with_list=False)
+
+run("8150", "5", "u47o", 1, n=5000, parallel=False, with_list=False)
+run("8150", "5", "u47o", 2, n=5000, parallel=False, with_list=False)
+run("8150", "5", "u47o", 3, n=5000, parallel=False, with_list=False)
+run("8150", "5", "u47o", 4, n=5000, parallel=False, with_list=False)
+run("8150", "5", "u47o", 5, n=5000, parallel=False, with_list=False)
+
+run("8150", "5", "tg7n", 1, n=5000, parallel=False, with_list=False)
+run("8150", "5", "tg7n", 2, n=5000, parallel=False, with_list=False)
+run("8150", "5", "tg7n", 3, n=5000, parallel=False, with_list=False)
+run("8150", "5", "tg7n", 4, n=5000, parallel=False, with_list=False)
+run("8150", "5", "tg7n", 5, n=5000, parallel=False, with_list=False)
+
+
+run("4810", "5", "ecia", 1, n=5000, parallel=False, with_list=False)
+run("4810", "5", "ecia", 2, n=5000, parallel=False, with_list=False)
+run("4810", "5", "ecia", 3, n=5000, parallel=False, with_list=False)
+run("4810", "5", "ecia", 4, n=5000, parallel=False, with_list=False)
+run("4810", "5", "ecia", 5, n=5000, parallel=False, with_list=False)
+
+run("4810", "5", "s4ci", 1, n=5000, parallel=False, with_list=False)
+run("4810", "5", "s4ci", 2, n=5000, parallel=False, with_list=False)
+run("4810", "5", "s4ci", 3, n=5000, parallel=False, with_list=False)
+run("4810", "5", "s4ci", 4, n=5000, parallel=False, with_list=False)
+run("4810", "5", "s4ci", 5, n=5000, parallel=False, with_list=False)
+
+run("4810", "5", "u47o", 1, n=5000, parallel=False, with_list=False)
+run("4810", "5", "u47o", 2, n=5000, parallel=False, with_list=False)
+run("4810", "5", "u47o", 3, n=5000, parallel=False, with_list=False)
+run("4810", "5", "u47o", 4, n=5000, parallel=False, with_list=False)
+run("4810", "5", "u47o", 5, n=5000, parallel=False, with_list=False)
+
+run("4810", "5", "tg7n", 1, n=5000, parallel=False, with_list=False)
+run("4810", "5", "tg7n", 2, n=5000, parallel=False, with_list=False)
+run("4810", "5", "tg7n", 3, n=5000, parallel=False, with_list=False)
+run("4810", "5", "tg7n", 4, n=5000, parallel=False, with_list=False)
+run("4810", "5", "tg7n", 5, n=5000, parallel=False, with_list=False)
+
+# -------------------------------- PLOTS ------------------------------------------------------- #
 
 # plot_key_interval_distribution_for_hidden_state("4810", 3)      # p -> p + u
-# plot_key_interval_distribution_for_hidden_state("4810", 158)    # 4 + q -> q
-# plot_key_interval_distribution("4589")
+# plot_key_interval_distribution_for_hidden_state("4810", 152)    # 4 + q -> q
+# plot_key_interval_distribution_for_user("2680")
+# plot_key_interval_distribution_for_user("8502")
+# plot_all_key_interval_distributions_for_user("8502")
+
+# plot_key_interval_distribution()
+# plot_key_interval_distribution(["2680", "4589", "8502", "9222"])  # Hybrid Typists
+# plot_key_interval_distribution(["4810", "8150", "9086", "9963"])  # Touch Typists
 
 # plot_key_changes_distribution("4810")
 
 # plot_overlapping_vs_non_overlapping_for_user("4810")
 # plot_overlapping_vs_non_overlapping_for_user("9222")
 
+# plot_overlapping_vs_non_overlapping(keystrokes=True)
+# plot_overlapping_vs_non_overlapping(["2680", "4589", "8502", "9222"], keystrokes=True)  # Hybrid Typists
+# plot_overlapping_vs_non_overlapping(["4810", "8150", "9086", "9963"], keystrokes=True)  # Touch Typists
+
 # plot_overlapping_keystrokes_distribution()
+# plot_overlapping_keystrokes_distribution(["2680", "4589", "8502", "9222"])  # Hybrid Typists
+# plot_overlapping_keystrokes_distribution(["4810", "8150", "9086", "9963"])  # Touch Typists
+
+# plot_overlapping_keystrokes_comparison(["9222", "4589", "2680", "8502"], ["34", "37", "61", "72"])    # Hybrid Typists
+# plot_overlapping_keystrokes_comparison(["9086", "8150", "9963", "4810"], ["53", "60", "64", "90"])    # Touch Typists
 
 # plot_entropy_and_information_gain_distribution("4810")
 # plot_entropy_and_information_gain_distribution("4589")
 
+# -------------------------------- CALCULATIONS AND ANALYSES ----------------------------------- #
+
 # calculate_information_gain_for_all_users()
 
+# calculate_number_of_hidden_states_for_user("8502")
+
+# count_all_bluetooth_packets()
 
 # check_passwords_for_double(n=500)
+
+# calculate_all_possible_passwords_count(4)
 
 
 runtime_sec = time.time() - st

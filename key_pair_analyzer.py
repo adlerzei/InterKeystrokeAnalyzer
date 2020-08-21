@@ -14,12 +14,16 @@ class KeyPairAnalyzer:
         self.overlapping_count = 0
         self.non_overlapping_count = 0
         self.max_overlapping = 0
+        self.overlapping_keystrokes_count = 0
+        self.non_overlapping_keystrokes_count = 0
+        self.bluetooth_packet_count = 0
 
     def read_packet_list(self, handler):
         self.packet_list = handler.read_csv_to_list()
         self.file_name = handler.file_name
 
         del self.packet_list[0]
+        self.bluetooth_packet_count += len(self.packet_list)
 
     def calculate_initialization_vector(self):
         i = 1
@@ -177,14 +181,14 @@ class KeyPairAnalyzer:
             print()
         print()
 
-    def count_overlapping_keystrokes(self):
+    def count_overlapping_keystrokes_keyboard_states(self):
         for packet in self.packet_list:
             new_keyboard_state = (packet[5], packet[6])
             new_keyboard_state_eval = utils.try_eval_tuple(new_keyboard_state)
             new_keyboard_state_eval[1].sort()
             count = utils.get_length_of_state(new_keyboard_state_eval)
 
-            # count if overlapping or nor
+            # count if overlapping or not
             if count == 0:
                 continue
             elif count == 1:
@@ -196,12 +200,32 @@ class KeyPairAnalyzer:
             if count > self.max_overlapping:
                 self.max_overlapping = count
 
-    def check_data_consistency(self):
+    def count_overlapping_keystrokes(self):
+        overlapping_key_pairs_list = []
+        for packet in self.packet_list:
+            if packet[0] in overlapping_key_pairs_list:
+                continue
+
+            new_keyboard_state = (packet[5], packet[6])
+            new_keyboard_state_eval = utils.try_eval_tuple(new_keyboard_state)
+            new_keyboard_state_eval[1].sort()
+            count = utils.get_length_of_state(new_keyboard_state_eval)
+
+            # count if overlapping or not
+            if count > 1:
+                overlapping_key_pairs_list.append(packet[0])
+
+        self.overlapping_keystrokes_count += (len(overlapping_key_pairs_list)) * 2
+        self.non_overlapping_keystrokes_count += (30 - len(overlapping_key_pairs_list)) * 2
+
+    def check_data_consistency(self, shift_allowed):
         i = 0
         x = 100
         old_packet = None
         same_packet_content = 0
         same_packet_content_list = []
+        wrong_modifier = 0
+        wrong_modifier_list = []
         packet_interval_zero = 0
         packet_interval_zero_list = []
         packet_interval_greater_x = 0
@@ -238,6 +262,11 @@ class KeyPairAnalyzer:
                 if packet[0] not in packet_count_per_recording_greater_4_list:
                     packet_count_per_recording_greater_4_list.append(packet[0])
 
+            if packet[5] != "":
+                if (packet[5] != "(shift)" and shift_allowed) or not shift_allowed:
+                    wrong_modifier += 1
+                    wrong_modifier_list.append(packet[0])
+
             if i != int(packet[0]) and i != int(packet[0]) - 1:
                 print(self.file_name + " wrong packet numbering " + ": packet no " + packet[0])
 
@@ -245,16 +274,56 @@ class KeyPairAnalyzer:
             old_packet = packet
 
         if same_packet_content > 0:
-            print(self.file_name + " --> same packet content: " + str(same_packet_content) + " times: " + str(same_packet_content_list))
+            print(
+                self.file_name +
+                " --> same packet content: " +
+                str(same_packet_content) +
+                " times: packet no. " +
+                str(same_packet_content_list)
+            )
+
+        if wrong_modifier > 0:
+            print(
+                self.file_name +
+                " --> wrong modifier: " +
+                str(wrong_modifier) +
+                " times: packet no. " +
+                str(wrong_modifier_list)
+            )
 
         if packet_interval_zero > 0:
-            print(self.file_name + " --> packet interval zero: " + str(packet_interval_zero) + " times: " + str(packet_interval_zero_list))
+            print(
+                self.file_name +
+                " --> packet interval zero: " +
+                str(packet_interval_zero) +
+                " times: packet no. " +
+                str(packet_interval_zero_list)
+            )
 
         if packet_interval_greater_x > 0:
-            print(self.file_name + " --> packet interval greater " + str(x) + ": " + str(packet_interval_greater_x) + " times: " + str(packet_interval_greater_x_list))
+            print(
+                self.file_name +
+                " --> packet interval greater " +
+                str(x) + ": " +
+                str(packet_interval_greater_x) +
+                " times: packet no. " +
+                str(packet_interval_greater_x_list)
+            )
 
         if packet_count_per_recording_greater_4 > 0:
-            print(self.file_name + " --> packet count per recording greater 4: " + str(packet_count_per_recording_greater_4) + " times: " + str(packet_count_per_recording_greater_4_list))
+            print(
+                self.file_name +
+                " --> packet count per recording greater 4: " +
+                str(packet_count_per_recording_greater_4) +
+                " times: packet no. " +
+                str(packet_count_per_recording_greater_4_list)
+            )
 
         # if packet_count_per_recording_smaller_4 > 0:
-        #     print(self.file_name + " --> packet count per recording smaller 4: " + str(packet_count_per_recording_smaller_4) + " times: " + str(packet_count_per_recording_smaller_4_list))
+        #     print(
+        #         self.file_name +
+        #         " --> packet count per recording smaller 4: " +
+        #         str(packet_count_per_recording_smaller_4) +
+        #         " times: packet no. " +
+        #         str(packet_count_per_recording_smaller_4_list)
+        #     )

@@ -29,13 +29,15 @@ class PasswordAnalyzer:
         self.observation_sequence = []
         self.used_password_id = -1
         self.max_overlapping_keystrokes = -1
+        self.bluetooth_packet_count = 0
 
     def read_packet_list(self, handler):
         self.packet_list = handler.read_csv_to_list()
 
         del self.packet_list[0]
+        self.bluetooth_packet_count += len(self.packet_list)
 
-    def read_other_packet_lists(self, user_id):
+    def read_other_packet_lists(self, user_id, with_shift=False):
         handler = FileHandler()
         for password in config.passwords:
             str_password = str(password)
@@ -46,7 +48,21 @@ class PasswordAnalyzer:
             handler.make_training_read_path_and_file(file_name, user_id, 4, str_password)
             packet_list = handler.read_csv_to_list()
             del packet_list[0]
+            self.bluetooth_packet_count += len(packet_list)
             self.other_packet_lists[str_password] = packet_list
+
+        if with_shift:
+            for password in config.shift_passwords:
+                str_password = str(password)
+                if str_password == self.password:
+                    continue
+
+                file_name = make_file_name(user_id, 4, str_password)
+                handler.make_training_read_path_and_file(file_name, user_id, 4, str_password)
+                packet_list = handler.read_csv_to_list()
+                del packet_list[0]
+                self.bluetooth_packet_count += len(packet_list)
+                self.other_packet_lists[str_password] = packet_list
 
         for password in config.random_passwords:
             str_password = str(password)
@@ -57,7 +73,21 @@ class PasswordAnalyzer:
             handler.make_training_read_path_and_file(file_name, user_id, 5, str_password)
             packet_list = handler.read_csv_to_list()
             del packet_list[0]
+            self.bluetooth_packet_count += len(packet_list)
             self.other_packet_lists[str_password] = packet_list
+
+        if with_shift:
+            for password in config.random_shift_passwords:
+                str_password = str(password)
+                if str_password == self.password:
+                    continue
+
+                file_name = make_file_name(user_id, 5, str_password)
+                handler.make_training_read_path_and_file(file_name, user_id, 5, str_password)
+                packet_list = handler.read_csv_to_list()
+                del packet_list[0]
+                self.bluetooth_packet_count += len(packet_list)
+                self.other_packet_lists[str_password] = packet_list
 
     def set_password(self, password):
         self.password = str(password)

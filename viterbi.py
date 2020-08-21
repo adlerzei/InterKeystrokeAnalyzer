@@ -243,8 +243,7 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
 
         if len_state_space > N:
             best_state_indices = np.argpartition(all_probabilities, all_probabilities.shape[1] - N)[:, all_probabilities.shape[1] - N:]
-            all_probabilities = np.take_along_axis(all_probabilities, best_state_indices, axis=-1) \
-                                * observation_matrix[np.newaxis, :, observation_sequence[j]].T
+            all_probabilities = np.take_along_axis(all_probabilities, best_state_indices, axis=-1)
             best_n_indices = np.zeros((len_state_space, N))
         else:
             best_state_indices = increasing_states_array
@@ -269,10 +268,14 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
                 axis=1
             )
 
-            max_indices = np.argpartition(all_probabilities, all_probabilities.shape[1] - N)[:, all_probabilities.shape[1] - N:]
-            all_probabilities = np.take_along_axis(all_probabilities, max_indices, axis=-1)
-            best_state_indices = np.take_along_axis(all_state_indices, max_indices, axis=-1)
-            best_n_indices = np.take_along_axis(all_n_indices, max_indices, axis=-1)
+            if N > all_probabilities.shape[1]:
+                best_state_indices = all_state_indices
+                best_n_indices = all_n_indices
+            else:
+                max_indices = np.argpartition(all_probabilities, all_probabilities.shape[1] - N)[:, all_probabilities.shape[1] - N:]
+                all_probabilities = np.take_along_axis(all_probabilities, max_indices, axis=-1)
+                best_state_indices = np.take_along_axis(all_state_indices, max_indices, axis=-1)
+                best_n_indices = np.take_along_axis(all_n_indices, max_indices, axis=-1)
 
         t1[:, j, :] = all_probabilities * observation_matrix[np.newaxis, :, observation_sequence[j]].T
         t2[:, j, :, 0] = best_state_indices
@@ -283,7 +286,24 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
     output = np.empty((N, len_observation_sequence), np.object)
 
     all_last_elements = t1[:, -1, :].ravel()
-    largest_elements = -np.sort(-np.argpartition(all_last_elements, all_last_elements.shape[0] - N)[all_last_elements.shape[0] - N:])
+
+    # largest_elements = np.argpartition(all_last_elements, all_last_elements.shape[0] - N)[all_last_elements.shape[0] - N:]
+    # largest_elements = np.flip(largest_elements)
+
+    # largest_elements = np.argsort(all_last_elements)[all_last_elements.shape[0] - N:]
+    # largest_elements = np.flip(largest_elements)
+
+    last_elements_sorted = np.argsort(all_last_elements)
+    last_elements_sorted = np.flip(last_elements_sorted)
+    largest_elements = np.empty(N)
+    i = 0
+    for last_element in last_elements_sorted:
+        last_hidden_state = state_space[last_element // N]
+        if last_hidden_state[1] == ('', ['', '', '', '', '', '']):
+            largest_elements[i] = last_element
+            i += 1
+        if i == N:
+            break
 
     x[:, -1, 0] = largest_elements // N
     x[:, -1, 1] = largest_elements % N

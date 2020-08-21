@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from tikzplotlib import save as tikz_save
 from file_handler import FileHandler, make_file_name
+import key_pair_generator as keygen
 from key_pair_analyzer import KeyPairAnalyzer
 from password_analyzer import PasswordAnalyzer
 import utils
@@ -9,53 +10,161 @@ import config
 plt.style.use(config.matplotlib_style)
 
 
-def calculate_overlapping_keystrokes_distribution_for_user(user_id):
+def calculate_overlapping_vs_non_overlapping_for_user(user_id):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
+    char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
 
     for task_id in range(1, 2):
         if utils.is_task_completed(user_id, task_id, file_handler):
-            for (s1, s2) in config.key_pairs:
+            if task_id == 1:
+                key_pairs = char_pairs
+            elif task_id == 2:
+                key_pairs = shift_pairs
+            else:
+                break
+
+            for (s1, s2) in key_pairs:
                 string_to_enter = s1 + s2
                 file_name = make_file_name(user_id, task_id, string_to_enter)
                 file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
 
                 analyzer.read_packet_list(file_handler)
+                analyzer.count_overlapping_keystrokes_keyboard_states()
                 analyzer.count_overlapping_keystrokes()
 
     return analyzer
 
 
-def plot_overlapping_vs_non_overlapping_for_user(user_id):
-    analyzer = calculate_overlapping_keystrokes_distribution_for_user(user_id)
+def calculate_overlapping_vs_non_overlapping(user_list):
+    file_handler = FileHandler()
+    analyzer = KeyPairAnalyzer()
+    char_pairs = config.key_pairs
+    shift_pairs = keygen.get_shift_pairs()
+    if user_list is None:
+        file_handler.set_path_and_file_name("", config.users_file_name)
+        file_handler.ensure_created()
+        user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
 
-    print("non overlapping: " + str(analyzer.non_overlapping_count))
-    print("overlapping: " + str(analyzer.overlapping_count))
+    for user_id in user_list:
+        for task_id in range(1, 2):
+            if utils.is_task_completed(user_id, task_id, file_handler):
+                if task_id == 1:
+                    key_pairs = char_pairs
+                elif task_id == 2:
+                    key_pairs = shift_pairs
+                else:
+                    break
+
+                for (s1, s2) in key_pairs:
+                    string_to_enter = s1 + s2
+                    file_name = make_file_name(user_id, task_id, string_to_enter)
+                    file_handler.make_training_read_path_and_file(file_name, user_id, task_id, string_to_enter)
+
+                    analyzer.read_packet_list(file_handler)
+                    analyzer.count_overlapping_keystrokes_keyboard_states()
+                    analyzer.count_overlapping_keystrokes()
+
+    return analyzer
+
+
+def plot_overlapping_vs_non_overlapping_for_user(user_id, keystrokes=False, pie_chart=False):
+    analyzer = calculate_overlapping_vs_non_overlapping_for_user(user_id)
+
+    if keystrokes:
+        non_overlapping = analyzer.non_overlapping_keystrokes_count
+        overlapping = analyzer.overlapping_keystrokes_count
+    else:
+        non_overlapping = analyzer.non_overlapping_count
+        overlapping = analyzer.overlapping_count
+
+    print("non overlapping: " + str(non_overlapping))
+    print("overlapping: " + str(overlapping))
 
     # Plot overlapping vs. non overlapping count
+    if pie_chart:
+        explode = (0, 0.1)
+        fig = plt.figure()
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.axis('equal')
+        ax.pie([non_overlapping, overlapping], labels=["Non-Overlapping", "Overlapping"], shadow=True, explode=explode)
 
-    explode = (0, 0.1)
-    fig = plt.figure()
-    ax = fig.add_axes([0, 0, 1, 1])
-    ax.axis('equal')
-    ax.pie([analyzer.non_overlapping_count, analyzer.overlapping_count], labels=["Overlapping", "Non-Overlapping"], shadow=True, explode=explode)
+        tikz_save(
+            "fig/overlapping_vs_non_overlapping_for_user.tex",
+            axis_height='\\figH',
+            axis_width='\\figW',
+            extra_tikzpicture_parameters=["font=\LARGE"],
+            extra_axis_parameters=["xtick=\empty, ytick=\empty, axis lines=none, clip=false"],
+        )
+    else:
+        plt.bar(range(2), [non_overlapping, overlapping])
+        plt.xticks(range(2), ["Non-Overlapping", "Overlapping"])
 
-    tikz_save(
-        "fig/overlapping_vs_non_overlapping.tex",
-        axis_height='\\figH',
-        axis_width='\\figW',
-        extra_tikzpicture_parameters=["font=\LARGE"],
-        extra_axis_parameters=["xtick=\empty, ytick=\empty, axis lines=none, clip=false"],
-    )
+        plt.ylabel('Frequency', fontsize=16)
+        # plt.xlabel('Sniff Intervals for ' + str(hidden_state), fontsize=12)
+
+        tikz_save(
+            "fig/overlapping_vs_non_overlapping.tex",
+            axis_height='\\figH',
+            axis_width='\\figW',
+            extra_axis_parameters=["tick label style={font=\\footnotesize}", "ytick distance=2"]
+        )
 
     plt.show()
 
 
-def calculate_overlapping_keystrokes_distribution():
+def plot_overlapping_vs_non_overlapping(user_list, keystrokes=False, pie_chart=False):
+    analyzer = calculate_overlapping_vs_non_overlapping(user_list)
+
+    if keystrokes:
+        non_overlapping = analyzer.non_overlapping_keystrokes_count
+        overlapping = analyzer.overlapping_keystrokes_count
+    else:
+        non_overlapping = analyzer.non_overlapping_count
+        overlapping = analyzer.overlapping_count
+
+    print("non overlapping: " + str(non_overlapping))
+    print("overlapping: " + str(overlapping))
+
+    # Plot overlapping vs. non overlapping count
+    if pie_chart:
+        explode = (0, 0.1)
+        fig = plt.figure()
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.axis('equal')
+        ax.pie([non_overlapping, overlapping], labels=["Non-Overlapping", "Overlapping"], shadow=True, explode=explode)
+
+        tikz_save(
+            "fig/overlapping_vs_non_overlapping.tex",
+            axis_height='\\figH',
+            axis_width='\\figW',
+            extra_tikzpicture_parameters=["font=\LARGE"],
+            extra_axis_parameters=["xtick=\empty, ytick=\empty, axis lines=none, clip=false"],
+        )
+    else:
+        plt.bar(range(2), [non_overlapping, overlapping])
+        plt.xticks(range(2), ["Non-Overlapping", "Overlapping"])
+
+        plt.ylabel('Frequency', fontsize=16)
+        # plt.xlabel('Sniff Intervals for ' + str(hidden_state), fontsize=12)
+
+        tikz_save(
+            "fig/overlapping_vs_non_overlapping_touch.tex",
+            axis_height='\\figH',
+            axis_width='\\figW',
+            extra_axis_parameters=["tick label style={font=\\footnotesize}", "ytick distance=5000"]
+        )
+
+    plt.show()
+
+
+def calculate_overlapping_keystrokes_distribution(user_list=None):
     file_handler = FileHandler()
-    file_handler.set_path_and_file_name("", config.users_file_name)
-    file_handler.ensure_created()
-    user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
+    if user_list is None:
+        file_handler.set_path_and_file_name("", config.users_file_name)
+        file_handler.ensure_created()
+        user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
 
     max_overlapping_count = {}
     for user_id in user_list:
@@ -70,8 +179,8 @@ def calculate_overlapping_keystrokes_distribution():
     return max_overlapping_count
 
 
-def plot_overlapping_keystrokes_distribution():
-    max_overlapping_count = calculate_overlapping_keystrokes_distribution()
+def plot_overlapping_keystrokes_distribution(user_list=None):
+    max_overlapping_count = calculate_overlapping_keystrokes_distribution(user_list)
     max_overlapping_count = dict(reversed(list(max_overlapping_count.items())))
 
     print("max overlapping: " + str(max_overlapping_count))
@@ -210,6 +319,49 @@ def plot_key_changes_distribution(observation_probabilities):
         axis_width='\\figW',
         extra_tikzpicture_parameters=["font=\LARGE"],
         extra_axis_parameters=["xtick=\empty, ytick=\empty, axis lines=none, clip=false"]
+    )
+
+    plt.show()
+
+
+def calculate_overlapping_keystrokes_comparison_for_speed(user_list=None):
+    file_handler = FileHandler()
+    overlapping_keystrokes_comparison_list = []
+    if user_list is None:
+        file_handler.set_path_and_file_name("", config.users_file_name)
+        file_handler.ensure_created()
+        user_list = list(map(lambda x: x[0], file_handler.read_csv_to_list()))
+
+    for user_id in user_list:
+        analyzer = calculate_overlapping_vs_non_overlapping_for_user(user_id)
+        overlapping_keystrokes_comparison_list.append(
+            analyzer.overlapping_keystrokes_count / (
+                    analyzer.overlapping_keystrokes_count +
+                    analyzer.non_overlapping_keystrokes_count
+            )
+        )
+
+    return user_list, overlapping_keystrokes_comparison_list
+
+
+def plot_overlapping_keystrokes_comparison(user_list=None, labels=None):
+    overlapping_keystrokes_comparison = calculate_overlapping_keystrokes_comparison_for_speed(user_list)
+
+    if labels is None:
+        labels = overlapping_keystrokes_comparison[0]
+
+    # Plot the Hist
+    plt.bar(range(len(labels)), overlapping_keystrokes_comparison[1])
+    plt.xticks(range(len(labels)), labels)
+
+    plt.ylabel('Overlapping keystrokes (\%)', fontsize=16)
+    plt.xlabel('Typing speed (wpm)', fontsize=16)
+
+    tikz_save(
+        "fig/overlapping_keystrokes_comparison_hybrid.tex",
+        axis_height='\\figH',
+        axis_width='\\figW',
+        extra_axis_parameters=["tick label style={font=\\footnotesize}", "ytick distance=0.02"]
     )
 
     plt.show()
