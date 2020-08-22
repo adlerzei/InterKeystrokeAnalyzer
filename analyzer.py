@@ -781,75 +781,36 @@ st = time.time()
 # run_debug_2(n=2, with_list=False)
 # run("4810", "4", "niequai4", 5, n=1, parallel=False, with_list=False)
 
-# run("8150", "5", "ecia", 1, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "ecia", 2, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "ecia", 3, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "ecia", 4, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "ecia", 5, n=5000, parallel=False, with_list=False)
-#
-# run("8150", "5", "s4ci", 1, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "s4ci", 2, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "s4ci", 3, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "s4ci", 4, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "s4ci", 5, n=5000, parallel=False, with_list=False)
 
-# run("8150", "5", "u74o", 1, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "u74o", 2, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "u74o", 3, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "u74o", 4, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "u74o", 5, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "ecia", 1, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "ecia", 2, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "ecia", 3, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "ecia", 4, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "ecia", 5, n=5000, parallel=False, with_list=False)
 #
-# run("8150", "5", "tg7n", 1, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "tg7n", 2, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "tg7n", 3, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "tg7n", 4, n=5000, parallel=False, with_list=False)
-# run("8150", "5", "tg7n", 5, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "s4ci", 1, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "s4ci", 2, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "s4ci", 3, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "s4ci", 4, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "s4ci", 5, n=5000, parallel=False, with_list=False)
 #
+# run("8502", "5", "tg7n", 1, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "tg7n", 2, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "tg7n", 3, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "tg7n", 4, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "tg7n", 5, n=5000, parallel=False, with_list=False)
 #
-# run("4810", "5", "ecia", 1, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "ecia", 2, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "ecia", 3, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "ecia", 4, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "ecia", 5, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "shu7", 1, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "shu7", 2, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "shu7", 3, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "shu7", 4, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "shu7", 5, n=5000, parallel=False, with_list=False)
 #
-# run("4810", "5", "s4ci", 1, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "s4ci", 2, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "s4ci", 3, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "s4ci", 4, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "s4ci", 5, n=5000, parallel=False, with_list=False)
-#
-# run("4810", "5", "u74o", 1, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "u74o", 2, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "u74o", 3, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "u74o", 4, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "u74o", 5, n=5000, parallel=False, with_list=False)
-#
-# run("4810", "5", "tg7n", 1, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "tg7n", 2, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "tg7n", 3, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "tg7n", 4, n=5000, parallel=False, with_list=False)
-# run("4810", "5", "tg7n", 5, n=5000, parallel=False, with_list=False)
-#
-
-
-# run("8150", "4", "shu7", 1, n=5000, parallel=False, with_list=False)
-# run("8150", "4", "shu7", 2, n=5000, parallel=False, with_list=False)
-# run("8150", "4", "shu7", 5, n=5000, parallel=False, with_list=False)
-
-# run("8150", "4", "p7go", 1, n=5000, parallel=False, with_list=False)
-# run("8150", "4", "p7go", 3, n=5000, parallel=False, with_list=False)
-
-# run("4810", "4", "shu7", 1, n=5000, parallel=False, with_list=False)
-# run("4810", "4", "shu7", 2, n=5000, parallel=False, with_list=False)
-# run("4810", "4", "shu7", 3, n=5000, parallel=False, with_list=False)
-# run("4810", "4", "shu7", 4, n=5000, parallel=False, with_list=False)
-# run("4810", "4", "shu7", 5, n=5000, parallel=False, with_list=False)
-
-# run("4810", "4", "p7go", 1, n=5000, parallel=False, with_list=False)
-# run("4810", "4", "p7go", 2, n=5000, parallel=False, with_list=False)
-# run("4810", "4", "p7go", 3, n=5000, parallel=False, with_list=False)
-# run("4810", "4", "p7go", 4, n=5000, parallel=False, with_list=False)
-# run("4810", "4", "p7go", 5, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "p7go", 1, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "p7go", 2, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "p7go", 3, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "p7go", 4, n=5000, parallel=False, with_list=False)
+# run("8502", "4", "p7go", 5, n=5000, parallel=False, with_list=False)
 
 
 # -------------------------------- PLOTS ------------------------------------------------------- #
@@ -893,7 +854,7 @@ st = time.time()
 
 # check_passwords_for_double(n=500)
 
-# calculate_all_possible_passwords_count(4)
+calculate_all_possible_passwords_count(4)
 
 
 runtime_sec = time.time() - st
