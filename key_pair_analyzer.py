@@ -1,4 +1,5 @@
 import math
+import config
 import utils
 
 
@@ -234,11 +235,22 @@ class KeyPairAnalyzer:
         packet_count_per_recording_greater_4_list = []
         # packet_count_per_recording_smaller_4 = 0
         # packet_count_per_recording_smaller_4_list = []
+        wrong_key_count = 0
+        wrong_key_list = []
         packet_count_per_recording = 0
         for packet in self.packet_list:
             # if i != int(packet[0]) and i != 0 and packet_count_per_recording < 4:
             #     packet_count_per_recording_smaller_4 += 1
             #     packet_count_per_recording_smaller_4_list.append(int(packet[0])-1)
+
+            key_list = eval(packet[6])
+            for key in key_list:
+                if key == "":
+                    continue
+
+                if key not in config.chars:
+                    wrong_key_count += 1
+                    wrong_key_list.append(packet[0])
 
             if i != int(packet[0]):
                 packet_count_per_recording = 0
@@ -289,6 +301,15 @@ class KeyPairAnalyzer:
                 str(wrong_modifier) +
                 " times: packet no. " +
                 str(wrong_modifier_list)
+            )
+
+        if wrong_key_count > 0:
+            print(
+                self.file_name +
+                " --> wrong key in packet: " +
+                str(wrong_key_count) +
+                " times: packet no. " +
+                str(wrong_key_list)
             )
 
         if packet_interval_zero > 0:

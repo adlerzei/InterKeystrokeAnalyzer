@@ -793,7 +793,7 @@ st = time.time()
 # run("8150", "5", "s4ci", 4, n=5000, parallel=False, with_list=False)
 # run("8150", "5", "s4ci", 5, n=5000, parallel=False, with_list=False)
 
-run("8150", "5", "u74o", 1, n=5000, parallel=False, with_list=False)
+# run("8150", "5", "u74o", 1, n=5000, parallel=False, with_list=False)
 # run("8150", "5", "u74o", 2, n=5000, parallel=False, with_list=False)
 # run("8150", "5", "u74o", 3, n=5000, parallel=False, with_list=False)
 # run("8150", "5", "u74o", 4, n=5000, parallel=False, with_list=False)
@@ -829,6 +829,28 @@ run("8150", "5", "u74o", 1, n=5000, parallel=False, with_list=False)
 # run("4810", "5", "tg7n", 3, n=5000, parallel=False, with_list=False)
 # run("4810", "5", "tg7n", 4, n=5000, parallel=False, with_list=False)
 # run("4810", "5", "tg7n", 5, n=5000, parallel=False, with_list=False)
+#
+
+
+# run("8150", "4", "shu7", 1, n=5000, parallel=False, with_list=False)
+# run("8150", "4", "shu7", 2, n=5000, parallel=False, with_list=False)
+# run("8150", "4", "shu7", 5, n=5000, parallel=False, with_list=False)
+
+# run("8150", "4", "p7go", 1, n=5000, parallel=False, with_list=False)
+# run("8150", "4", "p7go", 3, n=5000, parallel=False, with_list=False)
+
+# run("4810", "4", "shu7", 1, n=5000, parallel=False, with_list=False)
+# run("4810", "4", "shu7", 2, n=5000, parallel=False, with_list=False)
+# run("4810", "4", "shu7", 3, n=5000, parallel=False, with_list=False)
+# run("4810", "4", "shu7", 4, n=5000, parallel=False, with_list=False)
+# run("4810", "4", "shu7", 5, n=5000, parallel=False, with_list=False)
+
+# run("4810", "4", "p7go", 1, n=5000, parallel=False, with_list=False)
+# run("4810", "4", "p7go", 2, n=5000, parallel=False, with_list=False)
+# run("4810", "4", "p7go", 3, n=5000, parallel=False, with_list=False)
+# run("4810", "4", "p7go", 4, n=5000, parallel=False, with_list=False)
+# run("4810", "4", "p7go", 5, n=5000, parallel=False, with_list=False)
+
 
 # -------------------------------- PLOTS ------------------------------------------------------- #
 
