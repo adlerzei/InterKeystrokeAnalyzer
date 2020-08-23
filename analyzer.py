@@ -352,14 +352,23 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
         output = ""
         changed = utils.get_key_events(('', ['', '', '', '', '', '']), result[0][0])
         for change in changed:
+            if change[1] == config.shift:
+                continue
+
             if change[0] == '':
                 output += change[1]
 
         for state in result:
             changed = utils.get_key_events(state[0], state[1])
             for change in changed:
+                if change[1] == config.shift:
+                    continue
+
                 if change[0] == '':
-                    output += change[1]
+                    new_key = change[1]
+                    if state[1][0] == config.shift:
+                        new_key = new_key.upper()
+                    output += new_key
 
         if output not in outputs:
             outputs.append(output)
@@ -782,7 +791,7 @@ st = time.time()
 # run("4810", "4", "niequai4", 5, n=1, parallel=False, with_list=False)
 
 
-run("8502", "5", "4iNu", 1, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "4iNu", 1, n=10000, parallel=False, with_list=False)
 # run("8502", "5", "4iNu", 2, n=5000, parallel=False, with_list=False)
 # run("8502", "5", "4iNu", 3, n=5000, parallel=False, with_list=False)
 # run("8502", "5", "4iNu", 4, n=5000, parallel=False, with_list=False)
