@@ -242,7 +242,7 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
         utils.get_all_states_with_length(config.chars, False, password_analyzer.max_overlapping_keystrokes))
     all_states = utils.sort_states(all_states)
 
-    for task_id in range(1, 2):
+    for task_id in range(1, 3):
         if utils.is_task_completed(user_id, task_id, file_handler):
             if task_id == 1:
                 key_pairs = char_pairs
@@ -782,11 +782,11 @@ st = time.time()
 # run("4810", "4", "niequai4", 5, n=1, parallel=False, with_list=False)
 
 
-# run("8502", "5", "Es4Q", 1, n=10000, parallel=False, with_list=False)
-# run("8502", "5", "Es4Q", 2, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "Es4Q", 3, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "Es4Q", 4, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "Es4Q", 5, n=5000, parallel=False, with_list=False)
+run("8502", "5", "4iNu", 1, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "4iNu", 2, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "4iNu", 3, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "4iNu", 4, n=5000, parallel=False, with_list=False)
+# run("8502", "5", "4iNu", 5, n=5000, parallel=False, with_list=False)
 #
 # run("8502", "5", "eQ74", 1, n=5000, parallel=False, with_list=False)
 # run("8502", "5", "eQ74", 2, n=5000, parallel=False, with_list=False)

@@ -2,22 +2,20 @@
 chars = ("o", "h", "a", "i", "s", "e", "p", "t", "u", "c", "q", "g", "n", "4", "7")
 words = ("push", "nice", "enough", "change", "question", "teaching")
 passwords = (
-    "p7go", "up4i", "shu7", "qaq4",
     "ieth4", "aogh4", "gae7o", "oon7i",
     "niequai4", "toaghu7i", "aetoh4co", "uing7tha", "ohcei4ha", "cie4quoo"
 )
 shift_passwords = (
-    "Es4Q", "7oSe", "4iNu", "nUs7",
     "Cha4a", "ieSh4", "Oone4", "gaeT4",
     "thoi4Toh", "ieChaes4", "oiNg4coo", "Goingai4", "teicha4E", "HooNgu4e"
 )
 random_passwords = (
-    "s4ci", "ecia", "tg7n", "u74o",
+    "s4ci", "ecia", "tg7n", "shu7",
     "7one4", "q4itn", "ucthg", "neeg7",
     "aeap74an", "eggos7hu", "ps4gaq7u", "onect4ae", "7nghptsp", "aqchch4e"
 )
 random_shift_passwords = (
-    "S4cE", "teN7", "7tiT", "eQ74",
+    "S4cE", "4iNu", "7tiT", "eQ74",
     "ctS4e", "hH4uS", "ieT4U", "ThC7g",
     "7hGenToI", "oNe4gAnG", "G7HpnhNo", "teTgH4Ts", "gTiCgs7T", "UoPtOiE7"
 )
