@@ -44,7 +44,7 @@ shift = "(shift)"
 random_seed = 1337
 
 # path/folders and so on
-data_base_folder = "/media/veracrypt1/"
+data_base_folder = "/home/ec2-user/data/veracrypt1/"
 users_file_name = "raw_data/users"
 completed_tasks_file_name = "completed_tasks"
 task_completed = "all"
