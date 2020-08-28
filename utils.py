@@ -453,10 +453,20 @@ def make_numpy_array_from_state_space(state_space):
     return out
 
 
-def get_count_all_possible_passwords(n):
+def get_count_all_possible_passwords(n, shift_allowed):
+    key_pairs = []
+    if shift_allowed:
+        for (key_1, key_2) in config.key_pairs:
+            if key_1.isalpha():
+                key_pairs.append((key_1.upper(), key_2))
+            if key_2.isalpha():
+                key_pairs.append((key_1, key_2.upper()))
+
+    key_pairs.extend(config.key_pairs)
+
     potential_successors = {}
-    for first_key_pair in config.key_pairs:
-        for next_key_pair in config.key_pairs:
+    for first_key_pair in key_pairs:
+        for next_key_pair in key_pairs:
             if first_key_pair[1] != next_key_pair[0]:
                 continue
 
@@ -466,16 +476,24 @@ def get_count_all_possible_passwords(n):
             potential_successors[first_key_pair].append(next_key_pair)
 
     password_count = 0
-    for key_pair in config.key_pairs:
-        password_count += get_passwords_count(n-2, key_pair, potential_successors)
+    for key_pair in key_pairs:
+        if key_pair[0].isupper() or key_pair[1].isupper():
+            new_n = n - 6
+        else:
+            new_n = n - 4
+        password_count += get_passwords_count(new_n, key_pair, potential_successors)
     return password_count
 
 
 def get_passwords_count(n, actual_key_pair, potential_successors):
-    if n == 0:
+    if n <= 0:
         return 1
     else:
         password_count = 0
         for next_key_pair in potential_successors[actual_key_pair]:
-            password_count += get_passwords_count(n - 1, next_key_pair, potential_successors)
+            if next_key_pair[0].isupper() or next_key_pair[1].isupper():
+                new_n = n - 4
+            else:
+                new_n = n - 2
+            password_count += get_passwords_count(new_n, next_key_pair, potential_successors)
         return password_count

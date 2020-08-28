@@ -338,8 +338,8 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
             n
         )
 
-    # for result in results:
-    #     print(result)
+    for result in results:
+        print(result)
 
     # file_handler.set_path_and_file_name("debug_data/out", "classified_state_sequences")
     # file_handler.ensure_created()
@@ -347,50 +347,50 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
     # for result in results:
     #     file_handler.write_csv_row([str(result)])
 
-    outputs = []
-    for result in results[1]:
-        output = ""
-        changed = utils.get_key_events(('', ['', '', '', '', '', '']), result[0][0])
-        for change in changed:
-            if change[1] == config.shift:
-                continue
-
-            if change[0] == '':
-                output += change[1]
-
-        for state in result:
-            changed = utils.get_key_events(state[0], state[1])
-            for change in changed:
-                if change[1] == config.shift:
-                    continue
-
-                if change[0] == '':
-                    new_key = change[1]
-                    if state[1][0] == config.shift:
-                        new_key = new_key.upper()
-                    output += new_key
-
-        if output not in outputs:
-            outputs.append(output)
-
-    file_handler.set_path_and_file_name(
-        "classification_data/out/" +
-        user_id +
-        "/" +
-        password_task_id +
-        "/" +
-        password_to_classify +
-        "/" +
-        str(password_id) +
-        "/",
-        password_to_classify + "_" + str(password_id) + "_top" + str(n)
-    )
-    file_handler.ensure_created()
-    file_handler.clear_file()
-
-    for output in outputs:
-        file_handler.write_csv_row([output])
-        print(output)
+    # outputs = []
+    # for result in results[1]:
+    #     output = ""
+    #     changed = utils.get_key_events(('', ['', '', '', '', '', '']), result[0][0])
+    #     for change in changed:
+    #         if change[1] == config.shift:
+    #             continue
+    #
+    #         if change[0] == '':
+    #             output += change[1]
+    #
+    #     for state in result:
+    #         changed = utils.get_key_events(state[0], state[1])
+    #         for change in changed:
+    #             if change[1] == config.shift:
+    #                 continue
+    #
+    #             if change[0] == '':
+    #                 new_key = change[1]
+    #                 if state[1][0] == config.shift:
+    #                     new_key = new_key.upper()
+    #                 output += new_key
+    #
+    #     if output not in outputs:
+    #         outputs.append(output)
+    #
+    # file_handler.set_path_and_file_name(
+    #     "classification_data/out/" +
+    #     user_id +
+    #     "/" +
+    #     password_task_id +
+    #     "/" +
+    #     password_to_classify +
+    #     "/" +
+    #     str(password_id) +
+    #     "/",
+    #     password_to_classify + "_" + str(password_id) + "_top" + str(n)
+    # )
+    # file_handler.ensure_created()
+    # file_handler.clear_file()
+    #
+    # for output in outputs:
+    #     file_handler.write_csv_row([output])
+    #     print(output)
 
 
 def plot_key_interval_distribution_for_hidden_state(user_id, x):
@@ -541,8 +541,8 @@ def plot_entropy_and_information_gain_distribution(user_id):
                 analyzer.read_packet_list(file_handler)
                 analyzer.calculate_probabilities()
 
-    # state_distribution = None
-    state_distribution = interval_plt.get_state_distribution(analyzer.observation_probabilities)
+    state_distribution = None
+    # state_distribution = interval_plt.get_state_distribution(analyzer.observation_probabilities)
 
     analyzer.normalize_probabilities()
 
@@ -594,8 +594,8 @@ def plot_overlapping_keystrokes_comparison(user_list=None, labels=None):
     stroke_plt.plot_overlapping_keystrokes_comparison(user_list, labels)
 
 
-def calculate_all_possible_passwords_count(n):
-    print("All possible passwords count: " + str(utils.get_count_all_possible_passwords(n)))
+def calculate_all_possible_passwords_count(n, shift_allowed):
+    print("All possible passwords count: " + str(utils.get_count_all_possible_passwords(n, shift_allowed)))
 
 
 def calculate_information_gain_for_all_users():
@@ -788,8 +788,9 @@ st = time.time()
 
 # run_debug()
 # run_debug_2(n=2, with_list=False)
-# run("4810", "4", "niequai4", 5, n=1, parallel=False, with_list=False)
+# run("4810", "4", "niequai4", 5, n=10000, parallel=True, with_list=True)
 
+# run("9963", "5", "s4ci", 1, n=5, parallel=False, with_list=True)
 
 # run("8502", "5", "4iNu", 1, n=10000, parallel=False, with_list=False)
 # run("8502", "5", "4iNu", 2, n=5000, parallel=False, with_list=False)
@@ -853,11 +854,11 @@ st = time.time()
 
 # calculate_number_of_hidden_states_for_user("8502")
 
-# count_all_bluetooth_packets()
+count_all_bluetooth_packets()
 
 # check_passwords_for_double(n=500)
 
-# calculate_all_possible_passwords_count(4)
+# calculate_all_possible_passwords_count(n=10, shift_allowed=True)
 
 
 runtime_sec = time.time() - st

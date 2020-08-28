@@ -1,0 +1,70 @@
+% This file was created by tikzplotlib v0.9.3.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.12156862745098,0.466666666666667,0.705882352941177}
+\definecolor{color1}{rgb}{1,0.498039215686275,0.0549019607843137}
+\definecolor{color2}{rgb}{0.172549019607843,0.627450980392157,0.172549019607843}
+\definecolor{color3}{rgb}{0.83921568627451,0.152941176470588,0.156862745098039}
+
+\begin{axis}[
+height=\figH,
+legend cell align={left},
+legend style={fill opacity=0.8, draw opacity=1, text opacity=1, at={(0.03,0.97)}, anchor=north west, draw=white!80!black},
+tick align=outside,
+tick label style={font=\footnotesize},
+tick pos=left,
+width=\figW,
+x grid style={white!69.0196078431373!black},
+xlabel={Number of results to calculate},
+xmin=-744.75, xmax=15749.75,
+xtick distance=2000,
+xtick style={color=black},
+y grid style={white!69.0196078431373!black},
+ylabel={Computation time (\SI{}{\second})},
+ymin=-559.38, ymax=11762.38,
+ytick distance=2000,
+ytick style={color=black}
+]
+\addplot [semithick, color0]
+table {%
+5 1.1
+500 12.6
+2000 158.5
+5000 1267
+10000 3278.9
+15000 11202.3
+};
+\addlegendentry{324 hidden states}
+\addplot [semithick, color1]
+table {%
+5 0.9
+500 11.4
+2000 164.8
+5000 1279.2
+10000 3173.5
+15000 9981.1
+};
+\addlegendentry{302 hidden states}
+\addplot [semithick, color2]
+table {%
+5 0.8
+500 6.6
+2000 99.4
+5000 756
+10000 2714.2
+15000 5867.3
+};
+\addlegendentry{199 hidden states}
+\addplot [semithick, color3]
+table {%
+5 0.7
+500 2.9
+2000 34.5
+5000 242.5
+10000 816.2
+15000 1878.1
+};
+\addlegendentry{83 hidden states}
+\end{axis}
+
+\end{tikzpicture}

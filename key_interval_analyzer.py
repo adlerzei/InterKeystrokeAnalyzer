@@ -164,7 +164,7 @@ def plot_interval_distribution(observation_probabilities):
     key_intervals = get_interval_distribution(observation_probabilities)
 
     # Filter
-    # key_intervals = {k: v for k, v in key_intervals.items() if k <= 12}
+    key_intervals = {k: v for k, v in key_intervals.items() if k <= 12}
 
     # Plot the Hist
     plt.bar(key_intervals.keys(), key_intervals.values())
@@ -173,10 +173,10 @@ def plot_interval_distribution(observation_probabilities):
     plt.xlabel('Latency (sniff intervals)', fontsize=16)
 
     tikz_save(
-        "fig/key_interval_distribution_with_shift.tex",
+        "fig/key_interval_distribution_8502.tex",
         axis_height='\\figH',
         axis_width='\\figW',
-        extra_axis_parameters=["tick label style={font=\\footnotesize}", "xtick distance=2", "ytick distance=100"]
+        extra_axis_parameters=["tick label style={font=\\footnotesize}", "xtick distance=2", "ytick distance=500"]
     )
 
     plt.show()
@@ -334,7 +334,7 @@ def plot_entropy_distribution(observation_probabilities, state_distribution=None
     x = 12
     entropy_distribution = calculate_entropy_distribution(observation_probabilities, x, state_distribution)
     plt.xlabel('Latency (sniff intervals)', fontsize=16)
-    plt.ylabel('Entropy (bits)', fontsize=16)
+    plt.ylabel('Entropy (\\SI{}{bits})', fontsize=16)
     plt.scatter(range(x), entropy_distribution)
 
     tikz_save(
@@ -365,7 +365,7 @@ def plot_information_gain_distribution(observation_probabilities, state_distribu
     x = 12
     information_gain_distribution = calculate_information_gain_distribution(observation_probabilities, x, state_distribution)
     plt.xlabel('Latency (sniff intervals)', fontsize=16)
-    plt.ylabel('Information Gain (bits)', fontsize=16)
+    plt.ylabel('Information Gain (\\SI{}{bits})', fontsize=16)
     plt.scatter(range(x), information_gain_distribution)
 
     tikz_save(

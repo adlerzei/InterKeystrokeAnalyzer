@@ -81,17 +81,10 @@ def viterbi_with_list(state_space, initialization_vector, transition_matrix, obs
     highest_path[len_observation_sequence - 1] = max_index
     output[len_observation_sequence - 1] = state_space[max_index]
 
-    print("max index: " + str(max_index))
-    print("max_last_entry: " + str(max_last_entry))
-
     for j in reversed(range(1, len_observation_sequence)):
-        print("t2[max_index][j]: " + str(t2[max_index][j]))
         highest_path[j-1] = t2[max_index][j]
-        print("state_space[t2[max_index][j]]: " + str(state_space[t2[max_index][j]]))
         output[j-1] = state_space[t2[max_index][j]]
-        print("t2[max_index][j]: " + str(t2[max_index][j]))
         max_index = t2[max_index][j]
-        print("max index: " + str(max_index))
 
     return highest_path, output
 
@@ -200,20 +193,11 @@ def n_viterbi_with_list(state_space, initialization_vector, transition_matrix, o
         highest_path[len_observation_sequence - 1] = (max_state_index, max_state_transition_index)
         output[len_observation_sequence - 1] = state_space[max_state_index]
 
-        print("max_state_index: " + str(max_state_index))
-        print("max_state_transition_index: " + str(max_state_transition_index))
-        print("max_last_entry: " + str(max_last_entry))
-
         for j in reversed(range(1, len_observation_sequence)):
-            print("t2[max_state_index][j][max_state_transition_index]: " + str(t2[max_state_index][j][max_state_transition_index]))
             highest_path[j-1] = t2[max_state_index][j][max_state_transition_index]
-            print("state_space[t2[max_state_index][j]]: " + str(state_space[t2[max_state_index][j][max_state_transition_index][0]]))
             output[j-1] = state_space[t2[max_state_index][j][max_state_transition_index][0]]
-            print("t2[max_state_index][j][max_state_transition_index]: " + str(t2[max_state_index][j][max_state_transition_index]))
             max_state_index = highest_path[j-1][0]
-            print("max_state_index: " + str(max_state_index))
             max_state_transition_index = highest_path[j-1][1]
-            print("max_state_transition_index: " + str(max_state_transition_index))
 
         outputs.append(output)
         highest_paths.append(highest_path)
@@ -286,12 +270,6 @@ def n_viterbi(state_space, initialization_vector, transition_matrix, observation
     output = np.empty((N, len_observation_sequence), np.object)
 
     all_last_elements = t1[:, -1, :].ravel()
-
-    # largest_elements = np.argpartition(all_last_elements, all_last_elements.shape[0] - N)[all_last_elements.shape[0] - N:]
-    # largest_elements = np.flip(largest_elements)
-
-    # largest_elements = np.argsort(all_last_elements)[all_last_elements.shape[0] - N:]
-    # largest_elements = np.flip(largest_elements)
 
     last_elements_sorted = np.argsort(all_last_elements)
     last_elements_sorted = np.flip(last_elements_sorted)
@@ -390,28 +368,18 @@ def n_viterbi_parallel(state_space, initialization_vector, transition_matrix, ob
     for max_transition in max_transition_list:
         max_state_index = max_transition[1][0]
         max_state_transition_index = max_transition[1][1]
-        max_last_entry = max_transition[0]
 
         highest_path = [None] * len_observation_sequence
         output = [None] * len_observation_sequence
         highest_path[len_observation_sequence - 1] = (max_state_index, max_state_transition_index)
         output[len_observation_sequence - 1] = state_space[max_state_index]
 
-        print("max_state_index: " + str(max_state_index))
-        print("max_state_transition_index: " + str(max_state_transition_index))
-        print("max_last_entry: " + str(max_last_entry))
-
         for j in reversed(range(1, len_observation_sequence)):
-            print("t2[max_state_index][j][max_state_transition_index]: " + str(t2[max_state_index][j][max_state_transition_index]))
             highest_path[j-1] = t2[max_state_index][j][max_state_transition_index]
-            print("state_space[t2[max_state_index][j]]: " + str(state_space[t2[max_state_index][j][max_state_transition_index][0]]))
             output[j-1] = state_space[t2[max_state_index][j][max_state_transition_index][0]]
-            print("t2[max_state_index][j][max_state_transition_index]: " + str(t2[max_state_index][j][max_state_transition_index]))
             max_state_index = highest_path[j-1][0]
-            print("max_state_index: " + str(max_state_index))
             max_state_transition_index = highest_path[j-1][1]
-            print("max_state_transition_index: " + str(max_state_transition_index))
 
         outputs.append(output)
 
-    return outputs
+    return highest_path, outputs

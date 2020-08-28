@@ -1,0 +1,32 @@
+% This file was created by tikzplotlib v0.9.3.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.12156862745098,0.466666666666667,0.705882352941177}
+
+\begin{axis}[
+axis line style={white!80!black},
+height=\figH,
+tick align=outside,
+tick label style={font=\footnotesize},
+tick pos=left,
+width=\figW,
+x grid style={white!80!black},
+xlabel={Typing speed (\SI{}{wpm})},
+xmajorgrids,
+xmin=-0.49, xmax=1.49,
+xtick distance=1,
+xtick style={color=white!15!black},
+xtick={0,1},
+xticklabels={60,90},
+y grid style={white!80!black},
+ylabel={Number of hidden states},
+ymajorgrids,
+ymin=0, ymax=340.2,
+ytick distance=100,
+ytick style={color=white!15!black}
+]
+\draw[draw=none,fill=color0] (axis cs:-0.4,0) rectangle (axis cs:0.4,302);
+\draw[draw=none,fill=color0] (axis cs:0.6,0) rectangle (axis cs:1.4,324);
+\end{axis}
+
+\end{tikzpicture}
