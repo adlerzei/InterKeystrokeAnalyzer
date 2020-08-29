@@ -2,6 +2,10 @@
 
 This program serves to analyze the keystroke latencies, that are recorded by a Bluetooth sniffer. In this repository, methods can be found to generate the transition array, the observation array and the observation sequence from the recorded data. Furthermore, three different implementations of the n-Viterbi algorithm can be found. Finally, some methods to plot interesting data features are included. 
 
+## Requirements
+
+1. A Python interpreter (recommended version 3 or higher)
+
 ## Dependencies
 
 To run this program, you need to install the following Python libraries:
@@ -15,7 +19,7 @@ To run this program, you need to install the following Python libraries:
 
 These packages can be installed by using your favorite packet manager. For instance, if you use [pip](https://pip.pypa.io/en/stable/), just run the following command:
 
-```
+```shell
 pip install numpy scipy matplotlib tikzplotlib
 ```
 
