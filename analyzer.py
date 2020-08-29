@@ -61,10 +61,6 @@ def run_debug(n=1, parallel=False, with_list=False):
     B = utils.make_numpy_arrays_from_observation_matrix(all_possible_states, observation_array)
     y = utils.make_numpy_array_from_observation_sequence(observation_sequence)
 
-    # all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
-    # print("all states reduced: " + str(all_states_reduced))
-    # print("count all states reduced: " + str(len(all_states_reduced)))
-
     if not parallel:
         if with_list:
             results = viterbi.n_viterbi_with_list(
@@ -236,11 +232,13 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
     password_analyzer.read_other_packet_lists(user_id)
     password_analyzer.calculate_max_overlapping_keystrokes()
 
+    # generate all states (optionally for extension of the observation and transition array, choose one)
     # len(all_states) = 9949 -> sum(15 choose x, x=1 to 6) + 1
     # all_states = utils.get_all_states(utils.extend_list_with_empty(config.chars), False)
-    all_states = utils.extend_list_with_empty_state(
-        utils.get_all_states_with_length(config.chars, False, password_analyzer.max_overlapping_keystrokes))
-    all_states = utils.sort_states(all_states)
+
+    # all_states = utils.extend_list_with_empty_state(
+    #     utils.get_all_states_with_length(config.chars, False, password_analyzer.max_overlapping_keystrokes))
+    # all_states = utils.sort_states(all_states)
 
     for task_id in range(1, 3):
         if utils.is_task_completed(user_id, task_id, file_handler):
@@ -262,18 +260,20 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
 
     analyzer.normalize_initialization_vector()
 
+    # extend the observation and transition array with related states (optionally)
     # analyzer.transition_probabilities = utils.fill_transition_array(all_states, analyzer.transition_probabilities)
     # analyzer.observation_probabilities = utils.fill_observation_array(all_states, analyzer.observation_probabilities)
 
     analyzer.normalize_probabilities()
 
-    #   file_handler.make_training_read_path_and_file(config.transitions_file_name, user_id)
-    #   analyzer.save_transition_probabilities(file_handler)
+    # store the transition array and observation array for later usage (optionally)
+    # file_handler.make_training_read_path_and_file(config.transitions_file_name, user_id)
+    # analyzer.save_transition_probabilities(file_handler)
 
-    #   file_handler.make_training_read_path_and_file(config.observations_file_name, user_id)
-    #   analyzer.save_observation_probabilities(file_handler)
+    # file_handler.make_training_read_path_and_file(config.observations_file_name, user_id)
+    # analyzer.save_observation_probabilities(file_handler)
 
-    #   analyzer.print_probabilities()
+    # analyzer.print_probabilities()
 
     observation_sequence = password_analyzer.observation_sequence
     initialization_vector = analyzer.initialization_vector
@@ -287,21 +287,6 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
     all_possible_states = utils.get_all_possible_states(observation_array)
     print("count all poss states: " + str(len(all_possible_states)))
     print()
-
-    # all_possible_keyboard_states_from_observations = \
-    #   utils.get_all_possible_keyboard_states_from_observations(observation_array)
-    # print("all possible keyboard states from observations: " + str(all_possible_keyboard_states_from_observations))
-    # print("count all poss keyboard states from observations:" + str(len(all_possible_keyboard_states_from_observations)))
-    # print()
-    #
-    # all_possible_keyboard_states_from_transitions = \
-    #   utils.get_all_possible_keyboard_states_from_transitions(transition_array)
-    # print("all possible keyboard states from transitions: " + str(all_possible_keyboard_states_from_transitions))
-    # print("count all poss keyboard states from transitions:" + str(len(all_possible_keyboard_states_from_transitions)))
-    # print()
-    #
-    # all_states_reduced = utils.reduce_to_possible_states(all_possible_states)
-    # print("count all states reduced: " + str(len(all_states_reduced)))
 
     state_space = utils.make_numpy_array_from_state_space(all_possible_states)
     IV = utils.make_numpy_array_from_initialisation_vector(all_possible_states, initialization_vector)
@@ -338,59 +323,61 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
             n
         )
 
-    for result in results:
-        print(result)
-
-    # file_handler.set_path_and_file_name("debug_data/out", "classified_state_sequences")
+    # store the state sequences (optionally)
+    # file_handler.set_path_and_file_name(
+    #     "debug_data/out/classified_state_sequences/",
+    #     password_to_classify + "_" + str(password_id) + "_top" + str(n)
+    # )
     # file_handler.ensure_created()
     # file_handler.clear_file()
     # for result in results:
     #     file_handler.write_csv_row([str(result)])
 
-    # outputs = []
-    # for result in results[1]:
-    #     output = ""
-    #     changed = utils.get_key_events(('', ['', '', '', '', '', '']), result[0][0])
-    #     for change in changed:
-    #         if change[1] == config.shift:
-    #             continue
-    #
-    #         if change[0] == '':
-    #             output += change[1]
-    #
-    #     for state in result:
-    #         changed = utils.get_key_events(state[0], state[1])
-    #         for change in changed:
-    #             if change[1] == config.shift:
-    #                 continue
-    #
-    #             if change[0] == '':
-    #                 new_key = change[1]
-    #                 if state[1][0] == config.shift:
-    #                     new_key = new_key.upper()
-    #                 output += new_key
-    #
-    #     if output not in outputs:
-    #         outputs.append(output)
-    #
-    # file_handler.set_path_and_file_name(
-    #     "classification_data/out/" +
-    #     user_id +
-    #     "/" +
-    #     password_task_id +
-    #     "/" +
-    #     password_to_classify +
-    #     "/" +
-    #     str(password_id) +
-    #     "/",
-    #     password_to_classify + "_" + str(password_id) + "_top" + str(n)
-    # )
-    # file_handler.ensure_created()
-    # file_handler.clear_file()
-    #
-    # for output in outputs:
-    #     file_handler.write_csv_row([output])
-    #     print(output)
+    # store the passwords from the results
+    outputs = []
+    for result in results[1]:
+        output = ""
+        changed = utils.get_key_events(('', ['', '', '', '', '', '']), result[0][0])
+        for change in changed:
+            if change[1] == config.shift:
+                continue
+
+            if change[0] == '':
+                output += change[1]
+
+        for state in result:
+            changed = utils.get_key_events(state[0], state[1])
+            for change in changed:
+                if change[1] == config.shift:
+                    continue
+
+                if change[0] == '':
+                    new_key = change[1]
+                    if state[1][0] == config.shift:
+                        new_key = new_key.upper()
+                    output += new_key
+
+        if output not in outputs:
+            outputs.append(output)
+
+    file_handler.set_path_and_file_name(
+        "classification_data/out/" +
+        user_id +
+        "/" +
+        password_task_id +
+        "/" +
+        password_to_classify +
+        "/" +
+        str(password_id) +
+        "/",
+        password_to_classify + "_" + str(password_id) + "_top" + str(n)
+    )
+    file_handler.ensure_created()
+    file_handler.clear_file()
+
+    for output in outputs:
+        file_handler.write_csv_row([output])
+        print(output)
 
 
 def plot_key_interval_distribution_for_hidden_state(user_id, x):
@@ -646,9 +633,9 @@ def calculate_number_of_hidden_states_for_user(user_id):
     char_pairs = config.key_pairs
     shift_pairs = keygen.get_shift_pairs()
 
-    all_states = utils.extend_list_with_empty_state(
-        utils.get_all_states_with_length(config.chars, False, 2))
-    all_states = utils.sort_states(all_states)
+    # all_states = utils.extend_list_with_empty_state(
+    #     utils.get_all_states_with_length(config.chars, False, 2))
+    # all_states = utils.sort_states(all_states)
 
     for task_id in range(1, 2):
         if utils.is_task_completed(user_id, task_id, file_handler):
@@ -782,39 +769,13 @@ def count_all_bluetooth_packets():
 
 st = time.time()
 
-# check_data_for_inconsistencies()
-
 # -------------------------------- VITERBI ----------------------------------------------------- #
 
 # run_debug()
 # run_debug_2(n=2, with_list=False)
+
 # run("4810", "4", "niequai4", 5, n=10000, parallel=True, with_list=True)
-
 # run("9963", "5", "s4ci", 1, n=5, parallel=False, with_list=True)
-
-# run("8502", "5", "4iNu", 1, n=10000, parallel=False, with_list=False)
-# run("8502", "5", "4iNu", 2, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "4iNu", 3, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "4iNu", 4, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "4iNu", 5, n=5000, parallel=False, with_list=False)
-#
-# run("8502", "5", "eQ74", 1, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "eQ74", 2, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "eQ74", 3, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "eQ74", 4, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "eQ74", 5, n=5000, parallel=False, with_list=False)
-#
-# run("8502", "5", "7tiT", 1, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "7tiT", 2, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "7tiT", 3, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "7tiT", 4, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "7tiT", 5, n=5000, parallel=False, with_list=False)
-#
-# run("8502", "5", "S4cE", 1, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "S4cE", 2, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "S4cE", 3, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "S4cE", 4, n=5000, parallel=False, with_list=False)
-# run("8502", "5", "S4cE", 5, n=5000, parallel=False, with_list=False)
 
 
 # -------------------------------- PLOTS ------------------------------------------------------- #
@@ -850,11 +811,13 @@ st = time.time()
 
 # -------------------------------- CALCULATIONS AND ANALYSES ----------------------------------- #
 
+# check_data_for_inconsistencies()
+
 # calculate_information_gain_for_all_users()
 
 # calculate_number_of_hidden_states_for_user("8502")
 
-count_all_bluetooth_packets()
+# count_all_bluetooth_packets()
 
 # check_passwords_for_double(n=500)
 

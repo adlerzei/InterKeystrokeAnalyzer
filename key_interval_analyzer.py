@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from tikzplotlib import save as tikz_save
 from scipy.stats import norm
-from scipy.interpolate import interp1d
 import numpy as np
 import utils
 import config
