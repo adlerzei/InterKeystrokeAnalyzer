@@ -14,7 +14,7 @@ def calculate_next_state_probabilities(t1_prev, k, m, observation_matrix_i_j, tr
     return trans, (k, m)
 
 
-def viterbi_with_list(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence):
+def viterbi_with_dict(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence):
     len_state_space = len(state_space)
     len_observation_sequence = len(observation_sequence)
 
@@ -118,9 +118,9 @@ def viterbi(state_space, initialization_vector, transition_matrix, observation_m
     return x, output
 
 
-def n_viterbi_with_list(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, n):
+def n_viterbi_with_dict(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence, n):
     if n == 1:
-        return viterbi_with_list(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence)
+        return viterbi_with_dict(state_space, initialization_vector, transition_matrix, observation_matrix, observation_sequence)
 
     len_state_space = len(state_space)
     len_observation_sequence = len(observation_sequence)
@@ -364,6 +364,7 @@ def n_viterbi_parallel(state_space, initialization_vector, transition_matrix, ob
             max_transition_list.append((t1[i][len_observation_sequence - 1][m], (i, m)))
 
     outputs = []
+    highest_path = []
 
     for max_transition in max_transition_list:
         max_state_index = max_transition[1][0]

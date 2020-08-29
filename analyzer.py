@@ -10,7 +10,7 @@ import viterbi
 import time
 
 
-def run_debug(n=1, parallel=False, with_list=False):
+def run_debug(n=1, parallel=False, with_dict=True):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     password_analyzer = PasswordAnalyzer()
@@ -62,8 +62,8 @@ def run_debug(n=1, parallel=False, with_list=False):
     y = utils.make_numpy_array_from_observation_sequence(observation_sequence)
 
     if not parallel:
-        if with_list:
-            results = viterbi.n_viterbi_with_list(
+        if with_dict:
+            results = viterbi.n_viterbi_with_dict(
                 all_possible_states,
                 initialization_vector,
                 transition_array,
@@ -94,7 +94,7 @@ def run_debug(n=1, parallel=False, with_list=False):
         print(result)
 
 
-def run_debug_2(n=1, with_list=False):
+def run_debug_2(n=1, with_dict=True):
     all_states = [
         ('', ('', '', '', '', '', 'a')),
         ('', ('', '', '', '', '', 'b')),
@@ -192,7 +192,7 @@ def run_debug_2(n=1, with_list=False):
     IV = utils.make_numpy_array_from_initialisation_vector(all_states, initialisation_vector)
     y = utils.make_numpy_array_from_observation_sequence(observation_sequence)
 
-    if not with_list:
+    if not with_dict:
         result = viterbi.n_viterbi(
             state_space,
             IV,
@@ -202,7 +202,7 @@ def run_debug_2(n=1, with_list=False):
             n
         )
     else:
-        result = viterbi.n_viterbi_with_list(
+        result = viterbi.n_viterbi_with_dict(
             all_states,
             initialisation_vector,
             transition_matrix,
@@ -215,7 +215,7 @@ def run_debug_2(n=1, with_list=False):
     print(result[1])
 
 
-def run(user_id, password_task_id, password_to_classify, password_id, n=1, parallel=False, with_list=False):
+def run(user_id, password_task_id, password_to_classify, password_id, n=1, parallel=False, with_dict=True):
     file_handler = FileHandler()
     analyzer = KeyPairAnalyzer()
     password_analyzer = PasswordAnalyzer()
@@ -295,8 +295,8 @@ def run(user_id, password_task_id, password_to_classify, password_id, n=1, paral
     y = utils.make_numpy_array_from_observation_sequence(observation_sequence)
 
     if not parallel:
-        if with_list:
-            results = viterbi.n_viterbi_with_list(
+        if with_dict:
+            results = viterbi.n_viterbi_with_dict(
                 all_possible_states,
                 initialization_vector,
                 transition_array,
@@ -772,10 +772,10 @@ st = time.time()
 # -------------------------------- VITERBI ----------------------------------------------------- #
 
 # run_debug()
-# run_debug_2(n=2, with_list=False)
+# run_debug_2(n=2, with_dict=False)
 
-# run("4810", "4", "niequai4", 5, n=10000, parallel=True, with_list=True)
-# run("9963", "5", "s4ci", 1, n=5, parallel=False, with_list=True)
+# run("4810", "4", "niequai4", 5, n=10000, parallel=True, with_dict=True)
+# run("9963", "5", "s4ci", 1, n=5, parallel=False, with_dict=True)
 
 
 # -------------------------------- PLOTS ------------------------------------------------------- #
