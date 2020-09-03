@@ -19,7 +19,7 @@ To run this program, you need to install the following Python libraries:
 
 These packages can be installed by using your favorite packet manager. For instance, if you use [pip](https://pip.pypa.io/en/stable/), just run the following command:
 
-```shell
+```bash
 pip install numpy scipy matplotlib tikzplotlib
 ```
 
